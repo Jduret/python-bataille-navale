@@ -1,0 +1,5 @@
+porte-avions;5
+croiseur;4
+contre-torpilleur;3
+sous-marin;3
+torpilleur;2

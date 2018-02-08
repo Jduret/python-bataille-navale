@@ -1,0 +1,356 @@
+partie graphique
+	-> gestion boutons
+	-> gestion nommage joueur | nomme le joueur au niveau du JEU
+	-> gestion plateau avec 2 grilles graphiques
+	-> gestion clique
+	-> gestion touchecoule
+	-> gestion gagne
+	
+	
+BATEAU
+	nom
+	taille
+	listeDesCasesNonTouches
+	estTouche
+	estCoule
+	
+GRILLE
+	collection(BateauSurGrille)
+	collection(BateauCoule)
+	grille de 6*6 pour stocker les torpilles
+	attaques adverses
+	+ getBateauxRestant
+	+ aBateauRestant
+	+ attaque
+	
+JOUEUR
+	type
+	nom
+	GRILLE
+	
+JEU
+	joueurSuivant
+	PLATEAU
+	JOUEUR
+	listeBateaux
+	getJoueur(type)
+	attaque(emplacement)
+		->joueurActuel.grille.attaque(emplacement)
+	
+PLATEAU = graphique
+	JEU
+	Tk
+	raz
+	renommer joueur	-> agit sur JOUEUR.nom
+	placement bateaux -> agit sur la grille d'un joueur
+	recommencer permet de remettre un bouton par bateau à placer
+	
+	attaque -> demande au jeu si l'attaque à réussi
+	 -> place l'info de l'attaque 
+	 
+	 
+Placement : 
+	Sur chaque case, le nom du bateau
+	ATTAQUE : 
+	On écrit la torpille sur la grille
+	
+	ToucheCoule test si attaque contient le nom d'un bateau 
+		si oui => touche
+			On ecrit l'info sur le bateau de la grille (le bateau de la grille contient la liste des cases qui le compose)
+				-> quand toutes les cases sont touchées : touchecoule => on supprime le bateau de la grille
+			continue
+		si non => aleau
+			joueurSuivant
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	##----- Importation des Modules -----##
+from __future__ import generators
+from tkinter import *
+from tkinter import messagebox
+from tkinter import simpledialog
+
+import os
+#Attention, on importe pas tous car os conteint AUSSI une méthode open
+#from os import *
+from copy import *
+from random import *
+from math import *
+from sys import *
+
+#Un petit  objet d'utilitaire
+class Settings:
+	__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
+	title = 'Bataille Navale'
+	defaultHumainName = 'Joueur 1'
+	
+#
+# Classe de gestion des grilles
+# pour une bataille navale par exemple on a besoin de 2 grilles
+#
+class Grille:
+	def __init__(self):
+	    #Les cases qui composent une grille 6*6
+		self.cases = [[0]*6]*6
+		self.bateaux = []
+
+class Joueur:
+	TYPE = 'undefined'
+	JOUEUR_PC = 'pc'
+	JOUEUR_HUMAIN = 'humain'
+
+	def Factory(self, type):
+		if type in Joueur.__subclasses__():
+			return eval(type+ '()')
+		raise TypeError('Le type de joueur "' + type + '" est inconnu.')
+
+	def __init__(self, name = ''):
+		self.name = name if name != '' else  self.__class__.__name__
+		self.grille = Grille()
+		
+	def choisirCase(self, limitation = None):
+		raise NotImplementedError('Chaque type de joueur DOIT définir la méthode "choisirCase"')
+	
+	#Cette méthode va appeler la méthode choisir case autant de fois que nécessaire pour placer les bateaux
+	def placerBateaux(self):
+		return false
+		
+	def toucheCoule(self, point):
+		return false
+
+class JoueurPc(Joueur):
+	TYPE = 'pc'
+	
+	def choisirCase(self, limitation = None):
+		return false
+
+class JoueurHumain(Joueur):
+	TYPE = 'humain'
+	
+	def choisirCase(self, limitation = None):
+		return false
+
+#
+# Class de gestion du jeu
+# contient les méthodes propre au jeu
+# recommencer
+# placerBateaux ...
+#
+class Jeu:
+	joueurs = {Joueur.JOUEUR_PC : None, Joueur.JOUEUR_HUMAIN : None}
+	_bateauxDisponibles = None
+	
+	def __init__(self, window = None):
+	    # Drapeau permettant de connaitre le joueur suivant
+		# l'humain commence le jeu
+		self._joueurSuivant = Joueur.JOUEUR_HUMAIN;
+		#Le jeu bataille navale est fait de 2 joueurs
+		#le PC
+		self.joueurs[Joueur.JOUEUR_PC] = JoueurPc()
+		#l'humain
+		self.joueurs[Joueur.JOUEUR_HUMAIN] = JoueurHumain()
+		
+		#On positionne les bateaux
+		#self.positionnerBateaux()
+				
+	#	Méthode permettant de réinitialiser une partie
+	def recommencer(self):
+		self.__init__()
+		
+	def getBateaux(self):
+		if self._bateauxDisponibles == None:
+			self._bateauxDisponibles = self._readConfigFile()
+		return self._bateauxDisponibles
+		
+	def _readConfigFile(self, fichierPath = 'include/bateaux.txt'):
+		result = {}
+		file = open(os.path.join(Settings.__location__, fichierPath), 'r')
+		for ligne in file:
+			name, size = ligne.split(';')
+			result[name] = size
+		return result
+		
+	#Positionne les bateaux sur la grille
+	#sera appelé une fois par grille et par bateau
+	#a faire
+	def positionnerBateaux(self, emplacement, sens, bateau, joueur = None):
+		if joueur == None:
+			for joueur in self.joueurs:
+				self.positionnerBateaux(joueur)
+		joueur.positionnerBateaux(self.getBateaux())
+	
+	#Permet de retourner le joueur actuel
+	def joueurSuivant(self):
+		joueur = self.joueurSuivant
+		self.joueurSuivant = Joueur.JOUEUR_HUMAIN if self.joueurSuivant == Joueur.JOUEUR_PC  else Joueur.JOUEUR_PC
+		
+	def attaquer(self, plateau, event):
+		return 'touche'
+
+class Plateau:
+	window = None
+	boutonQuitter = None
+	boutonChangerNom = None
+	boutonRecommencer = None
+	grillePc = None
+	grilleHumain = None
+	jeu = None
+	elements = {}
+	
+	def __init__(self, window, batailleNavale):
+		self.window = window
+		self.jeu = batailleNavale
+		self.elements['dessinGrilleHumain'] = []
+		self.elements['dessinGrillePc'] = []
+		
+		##----- Zones de texte -----##
+		self.elements['messagePc'] = Label(self.window, text='Joueur PC')
+		self.elements['messagePc'].grid(row = 2, column = 0, padx=3, pady=3, sticky = W+E)
+
+		self.elements['messageHumain'] = Label(self.window, text=Settings.defaultHumainName)
+		self.elements['messageHumain'].grid(row = 2, column = 2, padx=3, pady=3, sticky = W+E)
+		
+		#Boutons
+		self.boutonQuitter =  Button(self.window, text='Quitter', command = self.window.destroy)
+		self.boutonQuitter.grid(row = 4, column = 2, padx = 3, pady = 3,sticky=S+W+E)
+		
+		self.boutonRecommencer = Button(self.window, text='Nouvelle partie', command=self.recommencer)
+		self.boutonRecommencer.grid(row = 4, column = 0, padx = 3, pady = 3, sticky = S+W+E)
+
+		self.elements['boutonUnbind'] = Button(self.window, text='Unbind', command=self.unbindAll)
+		self.elements['boutonUnbind'].grid(row = 3, column = 1, padx = 3, pady = 3, sticky = S+W+E)
+		
+		def askName():
+			answer = simpledialog.askstring('Nouveau nom', self.window)
+			self.elements['messageHumain'].configure(text=answer)
+			
+		self.boutonChangeNom = Button(self.window, text='Changer nom', command=askName)
+		self.boutonChangeNom.grid(row = 4, column = 1, padx = 3, pady = 3, sticky = S+W+E)
+		
+		#Grilles
+		self.grillePc = self.createGrille()
+		self.grillePc.grid(row = 1, column = 0, columnspan = 1, padx = 5, pady = 5)
+		
+		self.grilleHumain = self.createGrille()
+		self.grilleHumain.grid(row = 1, column = 2, columnspan = 1, padx = 5, pady = 5)
+		
+		self.recommencer()
+		
+		
+	def bindPlacementBateaux(self):
+		self.grilleHumain.bind('<Button-1>',self.placerBateau)
+
+	def unbindAll(self):
+		self.unbindAttaque()
+		self.unbindPlacement()
+		
+	def unbindAttaque(self):
+		self.grillePc.unbind('<Button-1>')
+	def unbindPlacement(self):
+		self.grilleHumain.unbind('<Button-1>')
+	
+	def bindAttaque(self):
+		self.grillePc.bind('<Button-1>', self.attaquer)
+	
+	def attaquer(self, event):
+		result = self.jeu.attaquer(self.grillePc, event)
+		if result == 'touche':
+			self.placerTouche(self.grillePc, event)
+		elif result == 'aleau':
+			self.placerAleau(self.grillePc, event)
+	
+	def createGrille(self):
+		grille = Canvas(self.window, bg="SteelBlue3", width=303, height=303)
+		for i in range(7):
+			grille.create_line(0, 50*i+2, 303, 50*i+2, width=3)
+			grille.create_line(50*i+2, 0, 50*i+2, 303, width=3)
+		return grille
+		
+	def placerBateau(self, event):
+		abscisse = event.x
+		ordonnee = event.y
+		
+		l = (ordonnee-2)//50
+		c = (abscisse-2)//50 
+		lettre = ['A', 'B', 'C', 'D', 'E', 'F']
+		self.message('Placement ' + lettre[c] + str(l+1))
+		self.elements['dessinGrilleHumain'].append(self.grilleHumain.create_oval(50*c+12, 50*l+12, 50*c+40, 50*l+40, width = 5, outline = 'grey'))
+		#self.jeu.positionnerBateaux(lettre[c]+str(l+1), )
+	
+	def placerAleau(self, grille, event):
+		abscisse = event.x
+		ordonnee = event.y
+		
+		l = (ordonnee-2)//50
+		c = (abscisse-2)//50 
+		
+		self.elements['dessinGrillePc'].append(grille.create_line(50*c+3, 50*l+51, 50*c+51, 50*l+3, width = 5, fill = 'white'))
+		self.elements['dessinGrillePc'].append(grille.create_line(50*c, 50*l, 50*c+51, 50*l+51, width = 5, fill = 'white'))
+		
+	def placerTouche(self, grille, event):
+		abscisse = event.x
+		ordonnee = event.y
+		
+		l = (ordonnee-2)//50
+		c = (abscisse-2)//50 
+		self.elements['dessinGrillePc'].append(grille.create_oval(50*c+12, 50*l+12, 50*c+40, 50*l+40, width = 5, outline = 'red'))
+		
+	def recommencer(self):
+		for figure in self.elements['dessinGrilleHumain']:
+			self.grilleHumain.delete(figure)
+		for figure in self.elements['dessinGrillePc']:
+			self.grillePc.delete(figure)
+				
+		self.elements['messageHumain'].configure(text=Settings.defaultHumainName)
+		self.jeu.recommencer()
+		
+		#juste pour test, sera retiré par la suite
+		#il faut appeler ces méthodes au bon moment
+		self.bindPlacementBateaux()
+		self.bindAttaque()
+		
+	def message(self, text):
+		messagebox.showinfo(Settings.title, text)
+		
+	
