@@ -9,6 +9,7 @@ from jdev4u.bateau import *
 class Jeu:
 	joueurs = {Joueur.JOUEUR_PC : None, Joueur.JOUEUR_HUMAIN : None}
 	_bateauxDisponibles = None
+	currentBateau = None
 	
 	def __init__(self, window = None):
 		# Drapeau permettant de connaitre le joueur suivant
@@ -20,8 +21,7 @@ class Jeu:
 		#l'humain
 		self.joueurs[Joueur.JOUEUR_HUMAIN] = JoueurHumain()
 		
-		#On positionne les bateaux
-		#self.positionnerBateaux()
+		self.currentBateauName = None
 				
 	#	Méthode permettant de réinitialiser une partie
 	def recommencer(self):
@@ -31,13 +31,16 @@ class Jeu:
 		if self._bateauxDisponibles == None or refresh == True :
 			self._bateauxDisponibles = self._readConfigFile()
 		return self._bateauxDisponibles
-		
+	
+	def getBateau(self, name):
+		return self.getBateaux()[name]
+	
 	def _readConfigFile(self, fichierPath = 'include/bateaux.txt'):
 		result = {}
 		file = open(os.path.join(Settings.__location__, fichierPath), 'r')
 		for ligne in file:
 			name, size = ligne.split(';')
-			result[name] = Bateau(name, size)
+			result[name] = Bateau(name, size, self)
 		return result
 		
 	#Positionne les bateaux sur la grille
