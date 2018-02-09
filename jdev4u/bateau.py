@@ -23,10 +23,11 @@ class Bateau:
 		hauteur = Settings.tailleCase*l+Settings.tailleRond
 		
 		if(sens == 'horizontal'):
-			return [
-			largeur + (self.taille*Settings.tailleCase), hauteur]
+			#taille - 1 car on a déjà mis en place une taille de 1 carreau juste au dessus
+			return [largeur + ((self.taille - 1)*Settings.tailleCase), hauteur]
 		else :
-			return [largeur,hauteur + (self.taille*Settings.tailleCase)]
+			#taille - 1 car on a déjà mis en place une taille de 1 carreau juste au dessus
+			return [largeur,hauteur + ((self.taille - 1)*Settings.tailleCase)]
 	
 	def placerAncrage(self, grille, pointAncrage):
 		self.pointAncrage = pointAncrage
