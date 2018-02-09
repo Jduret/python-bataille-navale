@@ -56,8 +56,14 @@ class Plateau:
 		self.elements['boutonChangeNom'].grid(row = 4, column = 1, padx = 3, pady = 3, sticky = S+W+E)
 		
 		def test(self, bateauName):
-			bateauTest = Bateau('Test', 5, self.jeu)
-			bateauTest.placerAncrage(self.elements['grilleHumain'], [2,2])
+			if(None == self.jeu.currentBateau):
+				bateauTest = Bateau('Test', 5, self.jeu)
+				bateauTest.placerAncrage(self.elements['grilleHumain'], [2,2])
+				self.jeu.currentBateau = bateauTest
+			else:
+				bateauTest = self.jeu.currentBateau 
+				bateauTest.removeGraphique(self.elements['grilleHumain'])
+				self.jeu.currentBateau = None
 			return
 			
 			self.bateauText.set(bateauName)
@@ -88,26 +94,12 @@ class Plateau:
 					width = Settings.epaisseurMarques, outline = 'chocolate', fill='chocolate')
 				)
 				
-		self.elements['TextTest'] = Label(self.window, text='Placement bateau :')
-		self.elements['TextTest'].place(relx=0.5, rely=0.1, anchor= CENTER, relwidth=0.4)
-		self.elements['TextTest2'] = Label(self.window, textvariable=self.bateauText)
-		self.elements['TextTest2'].place(in_=self.elements['TextTest'], relx=0.5, rely=1,  bordermode='outside')
+		self.elements['BateauTitle'] = Label(self.window, text='Placement bateau :')
+		self.elements['BateauTitle'].place(relx=0.5, rely=0.1, anchor= CENTER, relwidth=0.4)
+		self.elements['CurrentBateau'] = Label(self.window, textvariable=self.bateauText)
+		self.elements['CurrentBateau'].place(in_=self.elements['BateauTitle'], relx=0.5, rely=1.2,  bordermode='outside', anchor= CENTER)
 		
-		
-		self.elements['boutonTest'] = Button(self.window, text='test', command=lambda: test(self, bateauName = 'test0'))
-		self.elements['boutonTest'].place(relx=0.5, rely=0.2, anchor= CENTER, relwidth=0.4)
-		
-		self.elements['boutonTest2'] = Button(self.window, text='test2', command=test)
-		self.elements['boutonTest2'].place(in_=self.elements['boutonTest'], relx=0.5, anchor= CENTER, rely=1.5, relwidth=1, bordermode='outside')
-
-		self.elements['boutonTest3'] = Button(self.window, text='test3', command=test)
-		self.elements['boutonTest3'].place(in_=self.elements['boutonTest2'], relx=0.5, anchor= CENTER, rely=1.5, relwidth=1, bordermode='outside')
-
-		self.elements['boutonTest4'] = Button(self.window, text='test4', command=test)
-		self.elements['boutonTest4'].place(in_=self.elements['boutonTest3'], relx=0.5, anchor= CENTER, rely=1.5, relwidth=1, bordermode='outside')
-
-		self.elements['boutonTest5'] = Button(self.window, text='test5', command=test)
-		self.elements['boutonTest5'].place(in_=self.elements['boutonTest4'], relx=0.5, anchor= CENTER, rely=1.5, relwidth=1, bordermode='outside')
+		self.createBateauxButtons()
 
 		#Grilles
 		self.elements['grillePc']= self.createGrille()
@@ -161,6 +153,17 @@ class Plateau:
 		elif result == 'aleau':
 			self.placerAleau(self.elements['grillePc'], event)
 	
+	def createBateauxButtons(self):
+		lastShip = None
+		for bateau in self.jeu.getBateaux():
+			if(None == lastShip):
+				self.elements['boutonBateau_' + bateau] = Button(self.window, text=bateau, command=lambda currentBateau = bateau: self.selectionBateau(bateauName = currentBateau))
+				self.elements['boutonBateau_' + bateau].place(relx=0.5, rely=0.2, anchor= CENTER, relwidth=0.4)
+			else :
+				self.elements['boutonBateau_' + bateau] = Button(self.window, text=bateau, command=lambda  currentBateau = bateau: self.selectionBateau(bateauName = currentBateau))
+				self.elements['boutonBateau_' + bateau].place(in_=self.elements['boutonBateau_' + lastShip], relx=0.5, anchor= CENTER, rely=1.5, relwidth=1, bordermode='outside')
+			lastShip = bateau
+	
 	def createGrille(self):
 		largeur = Settings.tailleCase*Settings.tailleGrille + Settings.epaisseurTrait
 		grille = Canvas(self.window, bg=Settings.couleurFondGrille, width=largeur, height=largeur)
@@ -179,22 +182,19 @@ class Plateau:
 				largeur, 
 				width=Settings.epaisseurTrait)
 		return grille
+	
+	def selectionBateau(self, bateauName):
+		self.bateauText.set(bateauName)
+		self.jeu.currentBateau = self.jeu.getBateau(bateauName)
 		
 	def placerBateau(self, event):
+		if(None == self.jeu.currentBateau):
+			return
 		abscisse = event.x
 		ordonnee = event.y
-		
 		l = (ordonnee-Settings.epaisseurTrait)//Settings.tailleCase
 		c = (abscisse-Settings.epaisseurTrait)//Settings.tailleCase 
-		lettre = list(string.ascii_uppercase)
-		self.message('Placement ' + lettre[c] + str(l+1))
-		self.elements['figuresGrilleHumain'].append(self.elements['grilleHumain'].create_oval(
-			Settings.tailleCase*c+Settings.tailleCase + (2*Settings.epaisseurTrait) - Settings.tailleRond, 
-			Settings.tailleCase*l+Settings.tailleCase + (2*Settings.epaisseurTrait)- Settings.tailleRond, 
-			Settings.tailleCase*c+Settings.tailleRond, 
-			Settings.tailleCase*l+Settings.tailleRond, 
-			width = Settings.epaisseurMarques, outline = 'chocolate'))
-		#self.jeu.positionnerBateaux(lettre[c]+str(l+1), )
+		self.jeu.currentBateau.placerAncrage(self.elements['grilleHumain'], [c, l])
 	
 	def placerAleau(self, grille, event):
 		abscisse = event.x
@@ -234,7 +234,10 @@ class Plateau:
 			self.elements['grilleHumain'].delete(figure)
 		for figure in self.elements['figuresGrillePc']:
 			self.elements['grillePc'].delete(figure)
-				
+		bateaux = self.jeu.getBateaux()
+		for bateauName in bateaux :
+			bateaux[bateauName].removeGraphique(self.elements['grilleHumain'])
+			bateaux[bateauName].pointAncrage = None
 		self.elements['messageHumain'].configure(text=Settings.defaultHumainName)
 		self.jeu.recommencer()
 		

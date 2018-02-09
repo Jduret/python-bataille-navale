@@ -6,13 +6,16 @@ class Bateau:
 	nom = None
 	taille = None
 	
+	jeu = None	
 	elementGraphique = None
 
 	def __init__(self, nom, taille, Jeu):
 		self.nom = nom
-		self.taille = taille
+		self.taille = int(taille)
 		self.pointAncrage = None
-		self.sens = 'horizontal'
+		self.sens = 'horizontal'		
+		self.elementGraphique = None
+		self.jeu = Jeu
 	
 	def calculDimensions(self, sens):
 		(c, l) = self.pointAncrage
@@ -20,7 +23,8 @@ class Bateau:
 		hauteur = Settings.tailleCase*l+Settings.tailleRond
 		
 		if(sens == 'horizontal'):
-			return [largeur + (self.taille*Settings.tailleCase), hauteur]
+			return [
+			largeur + (self.taille*Settings.tailleCase), hauteur]
 		else :
 			return [largeur,hauteur + (self.taille*Settings.tailleCase)]
 	
@@ -62,12 +66,13 @@ class Bateau:
 		)
 		
 	def removeGraphique(self, grille):
+		self.unbindMove(grille)
 		grille.delete(self.elementGraphique)
 		
 	def bindMove(self, grille):
 		grille.tag_bind(self.nom, '<Button-3>',lambda event, element=grille: self.moveGraphique(event, element))
 		
-	def unbindMove(self):
+	def unbindMove(self, grille):
 		grille.tag_unbind(self.nom, '<Button-3>')
 		
 	
