@@ -13,7 +13,7 @@ from random import *
 from math import *
 from sys import *
 from jdev4u.settings import *
-
+from jdev4u.bateau import *
 
 class Plateau:
 	#instance de Tk
@@ -56,6 +56,10 @@ class Plateau:
 		self.elements['boutonChangeNom'].grid(row = 4, column = 1, padx = 3, pady = 3, sticky = S+W+E)
 		
 		def test(self, bateauName):
+			bateauTest = Bateau('Test', 5, self.jeu)
+			bateauTest.placerAncrage(self.elements['grilleHumain'], [2,2])
+			return
+			
 			self.bateauText.set(bateauName)
 			c=l=2
 			largeur = Settings.tailleCase*c+Settings.tailleRond
