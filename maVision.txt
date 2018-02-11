@@ -1,3 +1,5 @@
+Objectif:
+
 partie graphique
 	-> gestion boutons
 	-> gestion nommage joueur | nomme le joueur au niveau du JEU
