@@ -8,6 +8,7 @@ class Bateau:
 	
 	jeu = None	
 	elementGraphique = None
+	ancrage = []
 
 	def __init__(self, nom, taille, Jeu):
 		self.nom = nom
@@ -18,7 +19,7 @@ class Bateau:
 		self.jeu = Jeu
 	
 	def calculDimensions(self, sens):
-		(c, l) = self.pointAncrage
+		(l, c) = self.pointAncrage
 		largeur = Settings.tailleCase*c+Settings.tailleRond
 		hauteur = Settings.tailleCase*l+Settings.tailleRond
 		
@@ -29,15 +30,31 @@ class Bateau:
 			#taille - 1 car on a déjà mis en place une taille de 1 carreau juste au dessus
 			return [largeur,hauteur + ((self.taille - 1)*Settings.tailleCase)]
 	
+	def updateCasesJeu(self, pointAncrage):
+		(l, c) = pointAncrage
+		l = l + 1
+		c = c + 1
+		self.ancrage = []
+		self.ancrage.append(str(l) + str(c))
+		for i in range(self.taille - 1):
+			if('horizontal' == self.sens):
+				l = l + 1
+			else :
+				c = c + 1
+			
+			self.ancrage.append(str(l) + str(c))
+		
+	
 	def placerAncrage(self, grille, pointAncrage):
 		self.pointAncrage = pointAncrage
 		if	(None != self.elementGraphique):
 			self.removeGraphique(grille)
 		self.createGraphique(grille)
 		self.bindMove(grille)
+		self.updateCasesJeu(pointAncrage)
 		
 	def createGraphique(self, grille):
-		(colonne, ligne) = self.pointAncrage
+		(ligne, colonne) = self.pointAncrage
 		(largeur, hauteur) = self.calculDimensions(self.sens)
 		self.elementGraphique = grille.create_oval(
 			Settings.tailleCase*colonne+Settings.tailleCase + (2*Settings.epaisseurTrait) - Settings.tailleRond, 
@@ -56,7 +73,7 @@ class Bateau:
 		else:
 			self.sens = 'horizontal'
 			
-		(colonne, ligne) = self.pointAncrage
+		(ligne, colonne) = self.pointAncrage
 		(largeur, hauteur) = self.calculDimensions(self.sens)
 		
 		grille.coords(self.elementGraphique, 

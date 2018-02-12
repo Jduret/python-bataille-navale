@@ -5,6 +5,12 @@ from jdev4u.settings import *
 #
 class Grille:
 	def __init__(self):
-		#Les cases qui composent une grille 6*6
-		self.cases = [[0]*Settings.tailleGrille]*Settings.tailleGrille
-		self.bateaux = []
+		self.emplacements = {}
+		self.bateaux = {}
+	def hasBateau(self, case):
+		return case in self.emplacements
+	def getBateau(self, case):
+		if self.hasBateau(case):
+			return self.bateaux[self.emplacements[case]] 
+		else :
+			return None

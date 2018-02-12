@@ -103,7 +103,12 @@ class Plateau:
 		self.elements['grillePc'].bind('<Button-1>', self.attaquer)
 	
 	def attaquer(self, event):
-		result = self.jeu.attaquer(self.elements['grillePc'], event)
+		abscisse = event.x
+		ordonnee = event.y
+		l = (ordonnee-Settings.epaisseurTrait)//Settings.tailleCase
+		c = (abscisse-Settings.epaisseurTrait)//Settings.tailleCase 
+		
+		result = self.jeu.attaquer(self, [l, c])
 		if result == 'touche':
 			self.placerTouche(self.elements['grillePc'], event)
 		elif result == 'aleau':
@@ -119,7 +124,7 @@ class Plateau:
 		for bateau in self.jeu.getBateaux():
 			if(None == lastShip):
 				self.elements['boutonBateau_' + bateau] = Button(self.window, text=bateau, command=lambda currentBateau = bateau: self.selectionBateau(bateauName = currentBateau))
-				self.elements['boutonBateau_' + bateau].place(relx=0.5, rely=0.2, anchor= CENTER, relwidth=0.4)
+				self.elements['boutonBateau_' + bateau].place(relx=0.5, rely=0.3, anchor= CENTER, relwidth=0.2)
 			else :
 				self.elements['boutonBateau_' + bateau] = Button(self.window, text=bateau, command=lambda  currentBateau = bateau: self.selectionBateau(bateauName = currentBateau))
 				self.elements['boutonBateau_' + bateau].place(in_=self.elements['boutonBateau_' + lastShip], relx=0.5, anchor= CENTER, rely=1.5, relwidth=1, bordermode='outside')
@@ -156,7 +161,7 @@ class Plateau:
 		ordonnee = event.y
 		l = (ordonnee-Settings.epaisseurTrait)//Settings.tailleCase
 		c = (abscisse-Settings.epaisseurTrait)//Settings.tailleCase 
-		self.jeu.currentBateau.placerAncrage(self.elements['grilleHumain'], [c, l])
+		self.jeu.currentBateau.placerAncrage(self.elements['grilleHumain'], [l, c])
 	
 	def placerAleau(self, grille, event):
 		abscisse = event.x

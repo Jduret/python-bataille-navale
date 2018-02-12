@@ -43,14 +43,8 @@ class Jeu:
 			result[name] = Bateau(name, size, self)
 		return result
 		
-	#Positionne les bateaux sur la grille
-	#sera appelé une fois par grille et par bateau
-	#a faire
-	def positionnerBateaux(self, emplacement, sens, bateau, joueur = None):
-		if joueur == None:
-			for joueur in self.joueurs:
-				self.positionnerBateaux(joueur)
-		joueur.positionnerBateaux(self.getBateaux())
+	def positionnerBateaux(self, emplacements, bateau, joueur = None):
+		self.joueurs[joueur].placerBateau(bateau, emplacements)
 	
 	#Permet de retourner le joueur actuel
 	def joueurSuivant(self):
@@ -58,6 +52,16 @@ class Jeu:
 		self.joueurSuivant = Joueur.JOUEUR_HUMAIN if self.joueurSuivant == Joueur.JOUEUR_PC  else Joueur.JOUEUR_PC
 	
 	#Return touche | aleau
-	def attaquer(self, plateau, event):
+	def attaquer(self, plateau, pointAttaque):
+		(ligne, colonne) = pointAttaque
+		ligne = ligne + 1
+		colonne = colonne + 1
+		plateau.message('attaque : ' + ';'.join([str(ligne), str(colonne)]))
+		bateaux = self.getBateaux()
+		attaque =  str(colonne) + str(ligne)
+		for bateauName in bateaux:
+			if attaque in bateaux[bateauName].ancrage :
+				return 'touche'
+			
 		return 'aleau'
 		
