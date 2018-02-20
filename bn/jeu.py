@@ -1,8 +1,9 @@
-from jdev4u.joueur import *
-from jdev4u.bateau import *
+from bn.joueur import *
+from bn.bateau import *
+import random
 #
-# Class de gestion du jeu
-# contient les méthodes propre au jeu
+# Classe de gestion du jeu
+# contient les méthodes propres au jeu :
 # recommencer
 # placerBateaux ...
 #
@@ -14,7 +15,7 @@ class Jeu:
 	def __init__(self, window = None):
 		# Drapeau permettant de connaitre le joueur suivant
 		# l'humain commence le jeu
-		self._joueurSuivant = Joueur.JOUEUR_HUMAIN;
+		self._joueurSuivant = Joueur.JOUEUR_HUMAIN
 		#Le jeu bataille navale est fait de 2 joueurs
 		#le PC
 		self.joueurs[Joueur.JOUEUR_PC] = JoueurPc()
@@ -43,25 +44,20 @@ class Jeu:
 			result[name] = Bateau(name, size, self)
 		return result
 		
-	def positionnerBateaux(self, emplacements, bateau, joueur = None):
-		self.joueurs[joueur].placerBateau(bateau, emplacements)
-	
+	#Positionne les bateaux sur la grille
+	#sera appelé une fois par grille et par bateau
+	def positionnerBateaux(self, emplacement, sens, bateau, joueur = None):
+		if joueur == 'humain':
+			for joueur in self.joueurs:
+				self.positionnerBateaux(joueur)
+		joueur.positionnerBateaux(self.getBateaux())
+		
 	#Permet de retourner le joueur actuel
 	def joueurSuivant(self):
 		joueur = self.joueurSuivant
 		self.joueurSuivant = Joueur.JOUEUR_HUMAIN if self.joueurSuivant == Joueur.JOUEUR_PC  else Joueur.JOUEUR_PC
 	
 	#Return touche | aleau
-	def attaquer(self, plateau, pointAttaque):
-		(ligne, colonne) = pointAttaque
-		ligne = ligne + 1
-		colonne = colonne + 1
-		plateau.message('attaque : ' + ';'.join([str(ligne), str(colonne)]))
-		bateaux = self.getBateaux()
-		attaque =  str(colonne) + str(ligne)
-		for bateauName in bateaux:
-			if attaque in bateaux[bateauName].ancrage :
-				return 'touche'
-			
+	def attaquer(self, plateau, event):
 		return 'aleau'
 		

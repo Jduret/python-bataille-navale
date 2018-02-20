@@ -6,14 +6,14 @@ from tkinter import simpledialog
 
 import string
 import os
-#Attention, on importe pas tous car os conteint AUSSI une méthode open
+#Attention, on n'importe pas tout car os contient AUSSI une méthode open
 #from os import *
 from copy import *
 from random import *
 from math import *
 from sys import *
-from jdev4u.settings import *
-from jdev4u.bateau import *
+from bn.settings import *
+from bn.bateau import *
 
 class Plateau:
 	#instance de Tk
@@ -22,7 +22,7 @@ class Plateau:
 	jeu = None
 	bateauText = None
 	
-	#Dans ce tableau on va placer tous les éléments graphique nécessaire à l'interface
+	#Dans ce tableau on va placer tous les éléments graphiques nécessaires à l'interface
 	elements = {}
 	
 	def __init__(self, window, batailleNavale):
@@ -35,7 +35,7 @@ class Plateau:
 		self.elements['figuresGrillePc'] = []
 		
 		##----- Zones de texte -----##
-		self.elements['messagePc'] = Label(self.window, text='Joueur PC')
+		self.elements['messagePc'] = Label(self.window, text='PC')
 		self.elements['messagePc'].grid(row = 2, column = 0, padx=3, pady=3, sticky = W+E)
 
 		self.elements['messageHumain'] = Label(self.window, text=Settings.defaultHumainName)
@@ -71,7 +71,7 @@ class Plateau:
 		h = self.window.winfo_height()
 		w = self.window.winfo_width()
 		
-		#Si la fenêtre n'est pas encore dessiné, on reporte
+		#Si la fenêtre n'est pas encore dessinée, on reporte
 		if(h < 50):
 			self.window.after(50, self.updatePosition)
 			return
@@ -103,12 +103,7 @@ class Plateau:
 		self.elements['grillePc'].bind('<Button-1>', self.attaquer)
 	
 	def attaquer(self, event):
-		abscisse = event.x
-		ordonnee = event.y
-		l = (ordonnee-Settings.epaisseurTrait)//Settings.tailleCase
-		c = (abscisse-Settings.epaisseurTrait)//Settings.tailleCase 
-		
-		result = self.jeu.attaquer(self, [l, c])
+		result = self.jeu.attaquer(self.elements['grillePc'], event)
 		if result == 'touche':
 			self.placerTouche(self.elements['grillePc'], event)
 		elif result == 'aleau':
@@ -124,7 +119,7 @@ class Plateau:
 		for bateau in self.jeu.getBateaux():
 			if(None == lastShip):
 				self.elements['boutonBateau_' + bateau] = Button(self.window, text=bateau, command=lambda currentBateau = bateau: self.selectionBateau(bateauName = currentBateau))
-				self.elements['boutonBateau_' + bateau].place(relx=0.5, rely=0.3, anchor= CENTER, relwidth=0.2)
+				self.elements['boutonBateau_' + bateau].place(relx=0.5, rely=0.2, anchor= CENTER, relwidth=0.4)
 			else :
 				self.elements['boutonBateau_' + bateau] = Button(self.window, text=bateau, command=lambda  currentBateau = bateau: self.selectionBateau(bateauName = currentBateau))
 				self.elements['boutonBateau_' + bateau].place(in_=self.elements['boutonBateau_' + lastShip], relx=0.5, anchor= CENTER, rely=1.5, relwidth=1, bordermode='outside')
@@ -161,7 +156,7 @@ class Plateau:
 		ordonnee = event.y
 		l = (ordonnee-Settings.epaisseurTrait)//Settings.tailleCase
 		c = (abscisse-Settings.epaisseurTrait)//Settings.tailleCase 
-		self.jeu.currentBateau.placerAncrage(self.elements['grilleHumain'], [l, c])
+		self.jeu.currentBateau.placerAncrage(self.elements['grilleHumain'], [c, l])
 	
 	def placerAleau(self, grille, event):
 		abscisse = event.x
