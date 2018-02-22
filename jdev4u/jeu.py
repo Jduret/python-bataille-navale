@@ -9,7 +9,7 @@ from jdev4u.bateau import *
 class Jeu:
 	joueurs = {Joueur.JOUEUR_PC : None, Joueur.JOUEUR_HUMAIN : None}
 	_bateauxDisponibles = None
-	currentBateau = None
+	currentJoueur = None
 	
 	def __init__(self, window = None):
 		# Drapeau permettant de connaitre le joueur suivant
@@ -22,7 +22,10 @@ class Jeu:
 		self.joueurs[Joueur.JOUEUR_HUMAIN] = JoueurHumain()
 		
 		self.currentBateauName = None
-				
+	
+	def getAdversaire(self):
+		return self.joueurs[Joueur.JOUEUR_PC] if currentJoueur.TYPE == Joueur.JOUEUR_HUMAIN else self.joueurs[Joueur.JOUEUR_HUMAIN]
+		
 	#	Méthode permettant de réinitialiser une partie
 	def recommencer(self):
 		self.__init__()

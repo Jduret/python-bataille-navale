@@ -87,20 +87,6 @@ class Plateau:
 		# and where it is placed
 		self.window.geometry('%dx%d+%d+%d' % (w, h, x, y))
 		
-	def bindPlacementBateaux(self):
-		self.elements['grilleHumain'].bind('<Button-1>',self.placerBateau)
-
-	def unbindAll(self):
-		self.unbindAttaque()
-		self.unbindPlacement()
-		
-	def unbindAttaque(self):
-		self.elements['grillePc'].unbind('<Button-1>')
-	def unbindPlacement(self):
-		self.elements['grilleHumain'].unbind('<Button-1>')
-	
-	def bindAttaque(self):
-		self.elements['grillePc'].bind('<Button-1>', self.attaquer)
 	
 	def attaquer(self, event):
 		abscisse = event.x
@@ -110,9 +96,9 @@ class Plateau:
 		
 		result = self.jeu.attaquer(self, [l, c])
 		if result == 'touche':
-			self.placerTouche(self.elements['grillePc'], event)
+			self.jeu.currentJoueur.adversaire.grille.placerTouche(event)
 		elif result == 'aleau':
-			self.placerAleau(self.elements['grillePc'], event)
+			self.jeu.currentJoueur.adversaire.grille.placerAleau(event)
 	
 	def createBateauxButtons(self):
 		self.elements['BateauTitle'] = Label(self.window, text='Placement bateau :')
@@ -129,30 +115,12 @@ class Plateau:
 				self.elements['boutonBateau_' + bateau] = Button(self.window, text=bateau, command=lambda  currentBateau = bateau: self.selectionBateau(bateauName = currentBateau))
 				self.elements['boutonBateau_' + bateau].place(in_=self.elements['boutonBateau_' + lastShip], relx=0.5, anchor= CENTER, rely=1.5, relwidth=1, bordermode='outside')
 			lastShip = bateau
-	
-	def createGrille(self):
-		largeur = Settings.tailleCase*Settings.tailleGrille + Settings.epaisseurTrait
-		grille = Canvas(self.window, bg=Settings.couleurFondGrille, width=largeur, height=largeur)
-		for i in range(Settings.tailleGrille +1):
-			grille.create_line(
-				0, 
-				Settings.tailleCase*i+(Settings.epaisseurTrait / 2), 
-				largeur, 
-				Settings.tailleCase*i+(Settings.epaisseurTrait / 2), 
-				width=Settings.epaisseurTrait)
-				
-			grille.create_line(
-				Settings.tailleCase*i+(Settings.epaisseurTrait / 2), 
-				0, 
-				Settings.tailleCase*i+(Settings.epaisseurTrait / 2), 
-				largeur, 
-				width=Settings.epaisseurTrait)
-		return grille
+
 	
 	def selectionBateau(self, bateauName):
 		bateau = self.jeu.getBateau(bateauName)
 		self.bateauText.set(bateau.nom + ' (' + str(bateau.taille) + ')')
-		self.jeu.currentBateau = bateau
+		self.jeu.joueurs[JOUEUR.JOUEUR_HUMAIN].grille.selectionnerBateau(bateauName)
 		
 	def placerBateau(self, event):
 		if(None == self.jeu.currentBateau):
@@ -162,39 +130,6 @@ class Plateau:
 		l = (ordonnee-Settings.epaisseurTrait)//Settings.tailleCase
 		c = (abscisse-Settings.epaisseurTrait)//Settings.tailleCase 
 		self.jeu.currentBateau.placerAncrage(self.elements['grilleHumain'], [l, c])
-	
-	def placerAleau(self, grille, event):
-		abscisse = event.x
-		ordonnee = event.y
-		
-		l = (ordonnee-Settings.epaisseurTrait)//Settings.tailleCase
-		c = (abscisse-Settings.epaisseurTrait)//Settings.tailleCase 
-		
-		self.elements['figuresGrillePc'].append(grille.create_line(
-			((Settings.tailleCase)*c) + Settings.epaisseurTrait, 
-			((Settings.tailleCase)*l)+ Settings.epaisseurTrait,
-			((Settings.tailleCase)*(c+1)) + Settings.epaisseurTrait, 
-			((Settings.tailleCase)*(l+1))+ Settings.epaisseurTrait,
-			width = Settings.epaisseurMarques, fill = 'white'))
-		self.elements['figuresGrillePc'].append(grille.create_line(
-			((Settings.tailleCase)*(c+1)) + Settings.epaisseurTrait, 
-			((Settings.tailleCase)*l)+ Settings.epaisseurTrait,
-			((Settings.tailleCase)*c) + Settings.epaisseurTrait, 
-			((Settings.tailleCase)*(l+1))+ Settings.epaisseurTrait,
-			width = Settings.epaisseurMarques, fill = 'white'))
-		
-	def placerTouche(self, grille, event):
-		abscisse = event.x
-		ordonnee = event.y
-		
-		l = (ordonnee-Settings.epaisseurTrait)//Settings.tailleCase
-		c = (abscisse-Settings.epaisseurTrait)//Settings.tailleCase 
-		self.elements['figuresGrillePc'].append(grille.create_oval(
-			Settings.tailleCase*c+Settings.tailleCase + (2*Settings.epaisseurTrait) - Settings.tailleRond, 
-			Settings.tailleCase*l+Settings.tailleCase + (2*Settings.epaisseurTrait) - Settings.tailleRond, 
-			Settings.tailleCase*c+Settings.tailleRond, 
-			Settings.tailleCase*l+Settings.tailleRond, 
-			width = Settings.epaisseurMarques, outline = 'red'))
 		
 	def recommencer(self):
 		for figure in self.elements['figuresGrilleHumain']:
