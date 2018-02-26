@@ -6,6 +6,9 @@ class Joueur:
 	JOUEUR_PC = 'pc'
 	JOUEUR_HUMAIN = 'humain'
 
+	name = None
+	grille = None
+
 	def Factory(self, type):
 		if type in Joueur.__subclasses__():
 			return eval(type+ '()')
@@ -13,26 +16,22 @@ class Joueur:
 
 	def __init__(self, name = ''):
 		self.name = name if name != '' else  self.__class__.__name__
-		self.grille = Grille()
-		
-	def choisirCase(self, limitation = None):
-		raise NotImplementedError('Chaque type de joueur DOIT définir la méthode "choisirCase"')
-	
-	#Cette méthode va appeler la méthode choisir case autant de fois que nécessaire pour placer les bateaux
-	def placerBateaux(self):
-		return false
-		
-	def toucheCoule(self, point):
-		return false
+		self.grille = Grille(self.TYPE)
+
+	def createGrille(self):
+		raise NotImplementedError('Chaque type de joueur DOIT définir la méthode "createGraphique" permettant de générer le graphique de la grille')
+
 
 class JoueurPc(Joueur):
 	TYPE = 'pc'
-	
-	def choisirCase(self, limitation = None):
+
+	def createGrille(self):
+		self.grille.addGrille({'row' : 1, 'column' : 0})
 		return false
 
 class JoueurHumain(Joueur):
 	TYPE = 'humain'
-	
-	def choisirCase(self, limitation = None):
+
+	def createGrille(self):
+		self.grille.addGrille({'row' : 1, 'column' : 2})
 		return false

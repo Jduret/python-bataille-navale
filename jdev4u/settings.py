@@ -3,6 +3,7 @@ import os
 #Un petit  objet d'utilitaire
 class Settings:
 	__location__ = os.getcwd()
+	window = None
 	title = 'Bataille Navale'
 	defaultHumainName = 'Joueur 1'
 	#Devraient etre dans la classe Grille
