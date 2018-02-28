@@ -10,10 +10,10 @@ class Settings:
 	#nombre de cases de largeur de la grille
 	tailleGrille = 10
 	#taille en px d'une case
-	tailleCase = 50
+	tailleCase = 40
 	#épaisseur du trait
 	epaisseurTrait = 3
 	#Taille du rond de placement bateau + placement touché (obligatoirement inférieur à tailleCase)
-	tailleRond = 45
+	tailleRond = tailleCase - 5
 	epaisseurMarques = 5
 	couleurFondGrille = 'lightseagreen'
