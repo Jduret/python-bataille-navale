@@ -1,5 +1,6 @@
 from jdev4u.grille import *
-
+from tkinter import *
+from tkinter import StringVar
 
 class Joueur:
 	TYPE = 'undefined'
@@ -15,7 +16,8 @@ class Joueur:
 		raise TypeError('Le type de joueur "' + type + '" est inconnu.')
 
 	def __init__(self, name = ''):
-		self.name = name if name != '' else  self.__class__.__name__
+		self.name = StringVar()
+		self.name.set(name if name != '' else  self.__class__.__name__)
 		self.grille = Grille(self.TYPE)
 
 	def createGrille(self):

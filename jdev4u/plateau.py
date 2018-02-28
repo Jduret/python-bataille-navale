@@ -29,7 +29,8 @@ class Plateau:
 		self.bateauText = StringVar()
 		self.bateauText.set('')
 
-		self.elements['messageStatus'] = Label(Settings.window, text='Placez vos bateaux')
+		self.elements['messageStatus'] = Label(Settings.window, text='Placez vos bateaux ici le message peut prendre de la place c\'est pas grave il dispose de toute une ligne pour lui tout seul')
+		#le columnspan ici permet de faire en sorte que le texte se place sur toute la largeur de la fenêtre
 		self.elements['messageStatus'].grid(row = 0, column = 0, padx=3, pady=3, columnspan=3, sticky = W+E)
 
 		##----- Zones de texte -----##
@@ -59,24 +60,32 @@ class Plateau:
 		self.elements['CurrentBateau'].place(in_=self.elements['BateauTitle'], relx=0.5, rely=1.2,  bordermode='outside', anchor= CENTER)
 
 		self.createBateauxButtons()
+		
+		#ajout des grilles
+		for joueurType in self.jeu.joueurs:
+			self.jeu.joueurs[joueurType].grille.addGrille(Settings.grillePlacement[joueurType])
 
 		self.recommencer()
 
 	def updatePosition(self):
-		return;
-		#Current size
+		#Cette ligne permet de désactiver le replacement automatique de la fenêtre
+		if(Settings.enableWindowUpdate):
+			return;
+		
+		#Taille actuelle de la fenêtre
 		h = Settings.window.winfo_height()
 		w = Settings.window.winfo_width()
 
 		#Si la fenêtre n'est pas encore dessiné, on reporte
+		#si la hauteur est inférieur à 50, alors on considère qu'elle n'est pas déssinée
 		if(h < 50):
 			Settings.window.after(50, self.updatePosition)
 			return
-		# get screen width and height
-		ws = Settings.window.winfo_screenwidth() # width of the screen
-		hs = Settings.window.winfo_screenheight() # height of the screen
+		# Taille actuelle de l'écran
+		ws = Settings.window.winfo_screenwidth() # largeur de l'écran
+		hs = Settings.window.winfo_screenheight() # hauteur de l'écran
 
-		# calculate x and y coordinates for the Tk root window
+		# calcul des coordonnées du point en haut à gauche de la fenêtre
 		x = (ws/2) - (w/2)
 		y = (hs/2) - (h/2)
 
@@ -84,32 +93,50 @@ class Plateau:
 		# and where it is placed
 		Settings.window.geometry('%dx%d+%d+%d' % (w, h, x, y))
 
-	def	eventToPoint(self, event):
-		abscisse = event.x
-		ordonnee = event.y
-		l = (ordonnee-Settings.epaisseurTrait)//Settings.tailleCase
-		c = (abscisse-Settings.epaisseurTrait)//Settings.tailleCase
-		return [c, l]
-
 	def createBateauxButtons(self):
+		#on initialise à None pour pouvoir gérer le placement des boutons relativement au bouton précédent (option "_in" de la méthode "place")
+		#et évidemment, le premier bouton n'a pas de précédent, et donc il sera placé relativement à la fenêtre (absence de l'option "_in")
 		lastShip = None
+		if('boutonBateau' in self.elements.keys()):
+			for bouton in self.elements['boutonBateau'].values():
+				bouton.destroy();
+		self.elements['boutonBateau'] = {}
+				
 		for bateau in self.jeu.getBateaux():
+			self.elements['boutonBateau'][bateau] = Button(Settings.window, text=bateau, command=lambda  currentBateau = bateau:
+				self.placerBateau(bateauName = currentBateau, joueurType = Joueur.JOUEUR_HUMAIN)
+			)
+			
 			if(None == lastShip):
-				self.elements['boutonBateau_' + bateau] = Button(Settings.window, text=bateau, command=lambda currentBateau = bateau: self.selectionBateau(bateauName = currentBateau))
-				self.elements['boutonBateau_' + bateau].place(relx=0.5, rely=0.2, anchor= CENTER, relwidth=0.4)
+				self.elements['boutonBateau'][bateau].place(relx=0.5, rely=0.2, anchor= CENTER, relwidth=0.4)
 			else :
-				self.elements['boutonBateau_' + bateau] = Button(Settings.window, text=bateau, command=lambda  currentBateau = bateau: self.selectionBateau(bateauName = currentBateau))
-				self.elements['boutonBateau_' + bateau].place(in_=self.elements['boutonBateau_' + lastShip], relx=0.5, anchor= CENTER, rely=1.5, relwidth=1, bordermode='outside')
+				self.elements['boutonBateau'][bateau].place(in_=self.elements['boutonBateau'][lastShip], relx=0.5, anchor= CENTER, rely=1.5, relwidth=1, bordermode='outside')
 			lastShip = bateau
+		#On ajoute un bouton de validation du placement des bateaux
+		self.elements['boutonBateau']['validerPlacement'] = Button(Settings.window, text='Valider', command=lambda : 
+			self.validerPlacement(Joueur.JOUEUR_HUMAIN)
+		)
+		self.elements['boutonBateau']['validerPlacement'].place(in_=self.elements['boutonBateau'][lastShip], relx=0.5, anchor = CENTER, rely = 2.5, relwidth=1, bordermode='outside')
+		
+	def placerBateau(self, bateauName, joueurType) :
+		self.bateauText.set(bateauName)
+		self.jeu.selectionBateau(bateauName, joueurType)
+				
+	def validerPlacement(self, joueurType):
+		if(False == self.jeu.tousLesBateauxSontPlaces(joueurType)):
+			self.message('Tous les bateaux ne sont pas encore placés')
+			return
+		
+		self.jeu.joueurs[joueurType].grille.unbindClic()
+		self.jeu.bindAttaque()
+			
 
 	def recommencer(self):
 		self.elements['messageHumain'].configure(text=Settings.defaultHumainName)
 		self.jeu.recommencer()
-
-		#juste pour test, sera retiré par la suite
-		#il faut appeler ces méthodes au bon moment
-		#self.bindPlacementBateaux()
-		#self.bindAttaque()
+		if('boutonBateau' in self.elements.keys()):
+			for bouton in self.elements['boutonBateau'].values():
+				bouton.configure(state = NORMAL);
 
 	def message(self, text):
 		messagebox.showinfo(Settings.title, text)

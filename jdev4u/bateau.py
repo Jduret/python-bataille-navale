@@ -9,7 +9,8 @@ class Bateau:
 	jeu = None
 	elementGraphique = None
 	ancrage = []
-
+	sens = None
+	
 	def __init__(self, nom, taille):
 		self.nom = nom
 		self.taille = int(taille)
@@ -18,7 +19,7 @@ class Bateau:
 		self.elementGraphique = None
 
 	def calculDimensions(self, sens):
-		(l, c) = self.pointAncrage
+		(c, l) = self.pointAncrage
 		largeur = Settings.tailleCase*c+Settings.tailleRond
 		hauteur = Settings.tailleCase*l+Settings.tailleRond
 
@@ -29,31 +30,31 @@ class Bateau:
 			#taille - 1 car on a déjà mis en place une taille de 1 carreau juste au dessus
 			return [largeur,hauteur + ((self.taille - 1)*Settings.tailleCase)]
 
-	def updateCasesJeu(self, pointAncrage):
-		(l, c) = pointAncrage
-		l = l + 1
+	def listeCasesBateau(self, pointAncrage):
+		(c, l) = pointAncrage
 		c = c + 1
-		self.ancrage = []
-		self.ancrage.append(str(l) + str(c))
-		for i in range(self.taille - 1):
+		l = l + 1
+		ancrage = []
+		for i in range(self.taille):
+			ancrage.append(str(c) + str(l))
+
 			if('horizontal' == self.sens):
-				l = l + 1
-			else :
 				c = c + 1
+			else :
+				l = l + 1
 
-			self.ancrage.append(str(l) + str(c))
-
+		return ancrage
 
 	def placerAncrage(self, grille, pointAncrage):
 		self.pointAncrage = pointAncrage
 		if	(None != self.elementGraphique):
 			self.removeGraphique(grille)
-		self.createGraphique(grille)
+		self.createGraphique(grille.grilleGraphique)
 		self.bindMove(grille)
-		self.updateCasesJeu(pointAncrage)
+		self.ancrage = self.listeCasesBateau(pointAncrage)
 
 	def createGraphique(self, grille):
-		(ligne, colonne) = self.pointAncrage
+		(colonne, ligne) = self.pointAncrage
 		(largeur, hauteur) = self.calculDimensions(self.sens)
 		self.elementGraphique = grille.create_oval(
 			Settings.tailleCase*colonne+Settings.tailleCase + (2*Settings.epaisseurTrait) - Settings.tailleRond,
@@ -67,12 +68,8 @@ class Bateau:
 		)
 
 	def moveGraphique(self, event, grille):
-		if('horizontal' == self.sens):
-			self.sens = 'vertical'
-		else:
-			self.sens = 'horizontal'
 
-		(ligne, colonne) = self.pointAncrage
+		(colonne, ligne) = self.pointAncrage
 		(largeur, hauteur) = self.calculDimensions(self.sens)
 
 		grille.coords(self.elementGraphique,
@@ -84,13 +81,13 @@ class Bateau:
 
 	def removeGraphique(self, grille):
 		self.unbindMove(grille)
-		grille.delete(self.elementGraphique)
+		grille.grilleGraphique.delete(self.elementGraphique)
 
 	def bindMove(self, grille):
-		grille.tag_bind(self.nom, '<Button-3>',lambda event, element=grille: self.moveGraphique(event, element))
+		grille.grilleGraphique.tag_bind(self.nom, '<Button-3>',lambda event, grille=grille, bateau=self: grille.retournerBateau(event, bateau))
 
 	def unbindMove(self, grille):
-		grille.tag_unbind(self.nom, '<Button-3>')
+		grille.grilleGraphique.tag_unbind(self.nom, '<Button-3>')
 
 
 
