@@ -23,12 +23,15 @@ class Joueur:
 
 	def createGrille(self):
 		raise NotImplementedError('Chaque type de joueur DOIT définir la méthode "createGraphique" permettant de générer le graphique de la grille')
-	
+
 	def getAdversaire(self, joueurs):
 		return joueurs[self.JOUEUR_PC] if (self.TYPE == self.JOUEUR_HUMAIN) else joueurs[self.JOUEUR_HUMAIN]
-		
+
 	def attaque(self, pointAttaque):
 		return self.grille.toucheCoule(pointAttaque)
+
+	def recommencer(self):
+		self.grille.viderGrille()
 
 
 
@@ -36,13 +39,22 @@ class JoueurPc(Joueur):
 	TYPE = 'pc'
 	isAutomatic = True
 
+	def __init__(self, name = ''):
+		Joueur.__init__(self, name)
+		self.grille.isGraphic = False
+
 	def createGrille(self):
 		self.grille.addGrille({'row' : 1, 'column' : 0})
 		return false
-	
-	def placementBateauAleatoire(self):
+
+	def placementBateauAleatoire(self, bateaux):
+		c = l = 1
+		for bateau in bateaux.values():
+			pointAncrage = [c, l]
+			self.grille.placerBateau(bateau, pointAncrage)
+			l = l + 1
 		return
-		
+
 	def attaqueAleatoire(self, adversaire):
 		pointAttaque = [2, 2]
 		return adversaire.attaque(pointAttaque)

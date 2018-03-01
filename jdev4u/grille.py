@@ -8,9 +8,10 @@ from tkinter import *
 class Grille:
 	bateaux = {}
 	emplacements = {}
-	emplacementsAttaque = {}
+	emplacementsAttaque = []
 
 	grilleGraphique = None
+	isGraphic = True
 	figuresAttaque = []
 
 	def __init__(self, joueurType):
@@ -41,17 +42,19 @@ class Grille:
 	def retournerBateau(self, event, bateau):
 		currentSens = bateau.sens
 		newSens = 'horizontal' if('vertical' == currentSens) else 'vertical'
-		pointAncrage = Settings.eventToPoint(event)
+		pointAncrage = list(map(lambda point : int(point), list(bateau.ancrage[0])))
+		#Si l'on veut modifier aussi le point d'ancrage lors d'une rotation
+		#pointAncrage = Settings.eventToPoint(event)
 		bateau.sens = newSens
 		if(False == self.placerBateau(bateau, pointAncrage)):
 			bateau.sens = currentSens
 			return False
 		return True
-	
+
 	def isIn(self, bateau, pointAncrage):
 		(c, l) = pointAncrage
 		return (
-			('horizontal' == bateau.sens and c + bateau.taille <= Settings.tailleGrille) 
+			('horizontal' == bateau.sens and c + bateau.taille <= Settings.tailleGrille)
 			or ('vertical' == bateau.sens and l + bateau.taille <= Settings.tailleGrille)
 		)
 	def seCroise(self, bateau, pointAncrage):
@@ -59,21 +62,20 @@ class Grille:
 			if(case in self.emplacements.keys() and bateau.nom != self.emplacements[case]):
 				return True
 		return False
-	
+
 	def removeBateau(self, bateau):
 		for emplacement in dict(self.emplacements):
 			if(bateau.nom == self.emplacements[emplacement]):
 				del self.emplacements[emplacement]
 		del self.bateaux[bateau.nom]
-		
+
 	def toucheCoule(self, pointAttaque):
-		(c, l) = pointAttaque
-		case = str(c) + str(l)
+		case = str(pointAttaque[0]) + str(pointAttaque[1])
 		if(case in self.emplacementsAttaque):
 			return False
-			
+		self.emplacementsAttaque.append(case)
 		result = 'aleau'
-		
+
 		bateau = self.getBateau(case)
 		if(None != bateau):
 			result = 'touche'
@@ -84,7 +86,7 @@ class Grille:
 				if(len(self.bateaux) == 0):
 					result = 'win'
 		return result
-		
+
 	def addGrille(self, placement):
 		self.grilleGraphique = self.createGrille();
 		self.grilleGraphique.grid(row = placement['row'], column = placement['column'], columnspan = 1, padx = 5, pady = 5)
@@ -124,41 +126,46 @@ class Grille:
 	def placerAleau(self, pointAttaque):
 		grille = self.grilleGraphique
 		(c, l) = pointAttaque
-		self.figuresAttaque['attaque'].append(grille.create_line(
+		#pour la partie graphique, le point d'attaque doit débuter par le point 0, 0
+		c -= 1
+		l -= 1
+		self.figuresAttaque.append(grille.create_line(
 			((Settings.tailleCase)*c) + Settings.epaisseurTrait,
 			((Settings.tailleCase)*l)+ Settings.epaisseurTrait,
 			((Settings.tailleCase)*(c+1)) + Settings.epaisseurTrait,
 			((Settings.tailleCase)*(l+1))+ Settings.epaisseurTrait,
 			width = Settings.epaisseurMarques, fill = 'white'))
-		self.figuresAttaque['attaque'].append(grille.create_line(
+		self.figuresAttaque.append(grille.create_line(
 			((Settings.tailleCase)*(c+1)) + Settings.epaisseurTrait,
 			((Settings.tailleCase)*l)+ Settings.epaisseurTrait,
 			((Settings.tailleCase)*c) + Settings.epaisseurTrait,
 			((Settings.tailleCase)*(l+1))+ Settings.epaisseurTrait,
 			width = Settings.epaisseurMarques, fill = 'white'))
-		
-	def placerTouche(self, event):
+
+	def placerTouche(self, pointAttaque):
 		grille = self.grilleGraphique
-
-		abscisse = event.x
-		ordonnee = event.y
-
-		l = (ordonnee-Settings.epaisseurTrait)//Settings.tailleCase
-		c = (abscisse-Settings.epaisseurTrait)//Settings.tailleCase
-		self.figuresAttaque['attaque'].append(grille.create_oval(
+		(c, l) = pointAttaque
+		#pour la partie graphique, le point d'attaque doit débuter par le point 0, 0
+		c -= 1
+		l -= 1
+		self.figuresAttaque.append(grille.create_oval(
 			Settings.tailleCase*c+Settings.tailleCase + (2*Settings.epaisseurTrait) - Settings.tailleRond,
 			Settings.tailleCase*l+Settings.tailleCase + (2*Settings.epaisseurTrait) - Settings.tailleRond,
 			Settings.tailleCase*c+Settings.tailleRond,
 			Settings.tailleCase*l+Settings.tailleRond,
 			width = Settings.epaisseurMarques, outline = 'red'))
 
+	def placerCoule(self, bateau):
+		grille = self.grilleGraphique
+		#self.figuresAttaque.append(grille.create_line(
+
 	def viderGrille(self):
 		for figure in self.figuresAttaque:
 			self.grilleGraphique.delete(figure)
-		for bateau in self.bateaux:
-			bateau.removeGraphique(self.grilleGraphique)
+		for bateau in self.bateaux.values():
+			bateau.removeGraphique(self)
 			bateau.pointAncrage = None
-		self.figuresAttaque = {
-			'attaque' : [],
-			'bateau' : []
-		}
+		self.figuresAttaque = []
+		self.bateaux = {}
+		self.emplacementsAttaque = []
+		self.emplacements = {}
