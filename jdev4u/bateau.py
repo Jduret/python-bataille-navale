@@ -88,6 +88,12 @@ class Bateau:
 
 	def unbindMove(self, grille):
 		grille.grilleGraphique.tag_unbind(self.nom, '<Button-3>')
+	
+	def attaque(self, case):
+		if(case in self.ancrage):
+			self.ancrage.remove(case)
+	def estCoule(self):
+		return (len(self.ancrage) == 0)
 
 
 

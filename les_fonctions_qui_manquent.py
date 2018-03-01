@@ -3,6 +3,7 @@ from random import *
 
 grillePC=[[0]*10]*10
 
+#correspond à la méthode Grille.isIn
 def est_dans_la_grille(case,grille): # case sous forme de tuple
     if case[0]<len(grille) and case[1]<len(grille):
         return True

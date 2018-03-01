@@ -128,7 +128,9 @@ class Plateau:
 			return
 		
 		self.jeu.joueurs[joueurType].grille.unbindClic()
-		self.jeu.bindAttaque()
+		for bateau in self.jeu.joueurs[joueurType].grille.bateaux.values():
+			bateau.unbindMove(self.jeu.joueurs[joueurType].grille)
+		self.jeu.joueurs[joueurType].getAdversaire(self.jeu.joueurs).grille.bindClic(self.jeu.attaquer)
 			
 
 	def recommencer(self):

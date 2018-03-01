@@ -14,6 +14,7 @@ class Jeu:
 	_bateauxDisponibles = None
 	currentJoueur = None
 	currentBateau = None
+	plateau = None
 
 	def __init__(self):
 		# Drapeau permettant de connaitre le joueur suivant
@@ -67,14 +68,26 @@ class Jeu:
 
 	#Permet de retourner le joueur actuel
 	def joueurSuivant(self):
-		joueur = self.joueurSuivant
-		self.joueurSuivant = Joueur.JOUEUR_HUMAIN if self.joueurSuivant == Joueur.JOUEUR_PC  else Joueur.JOUEUR_PC
+		self.currentJoueur = Joueur.JOUEUR_HUMAIN if self.currentJoueur == Joueur.JOUEUR_PC  else Joueur.JOUEUR_PC
+		if(self.joueurs[self.currentJoueur].isAutomatic):
+			self.joueurs[self.currentJoueur].attaqueAleatoire(self.joueurs[self.currentJoueur].getAdversaire(self.joueurs))
+			self.joueurSuivant()
 
-	#Return touche | aleau
+	#Return touche | coule | aleau
 	def attaquer(self, event):
-		result = self.currentJoueur.adversaire.attaque(Plateau.eventToPoint(event))
-		if result == 'touche':
-			self.currentJoueur.placerTouche(self.elements['grillePc'], event)
-		elif result == 'aleau':
-			self.currentJoueur.placerAleau(self.elements['grillePc'], event)
+		pointAttaque = Settings.eventToPoint(event)
+		result = self.joueurs[self.currentJoueur].getAdversaire(self.joueurs).attaque(pointAttaque)
+		if(result == 'win'):
+			self.joueurs[Joueur.JOUEUR_PC].grille.unbindClic()
+			if(None != self.plateau):
+				plateau.winner(self.joueurs[self.currentJoueur])
+		elif(result=='touche' or result=='coule'):
+			self.joueurs[self.currentJoueur].getAdversaire(self.joueurs).grille.placerTouche(pointAttaque)
+		elif(result == 'aleau'):
+			self.joueurs[self.currentJoueur].getAdversaire(self.joueurs).grille.placerAleau(pointAttaque)
+		#certaines regles permettent à un attaquant de rejouer en cas de succès
+		#pour mettre en place cette règle, il suffit de déplacer joueurSuivant dans le case 'aleau'
+		self.joueurSuivant()
+		
+		return result
 

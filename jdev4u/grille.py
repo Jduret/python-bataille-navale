@@ -59,6 +59,31 @@ class Grille:
 			if(case in self.emplacements.keys() and bateau.nom != self.emplacements[case]):
 				return True
 		return False
+	
+	def removeBateau(self, bateau):
+		for emplacement in dict(self.emplacements):
+			if(bateau.nom == self.emplacements[emplacement]):
+				del self.emplacements[emplacement]
+		del self.bateaux[bateau.nom]
+		
+	def toucheCoule(self, pointAttaque):
+		(c, l) = pointAttaque
+		case = str(c) + str(l)
+		if(case in self.emplacementsAttaque):
+			return False
+			
+		result = 'aleau'
+		
+		bateau = self.getBateau(case)
+		if(None != bateau):
+			result = 'touche'
+			bateau.attaque(case)
+			if(bateau.estCoule()):
+				result = 'coule'
+				self.removeBateau(bateau)
+				if(len(self.bateaux) == 0):
+					result = 'win'
+		return result
 		
 	def addGrille(self, placement):
 		self.grilleGraphique = self.createGrille();
@@ -94,16 +119,11 @@ class Grille:
 		return self.clicAction(event, *self.clicActionParams)
 
 	def unbindClic(self):
-		self.gilleGraphique.unbind('<Button-1>')
+		self.grilleGraphique.unbind('<Button-1>')
 
-	def placerAleau(self, event):
+	def placerAleau(self, pointAttaque):
 		grille = self.grilleGraphique
-		abscisse = event.x
-		ordonnee = event.y
-
-		l = (ordonnee-Settings.epaisseurTrait)//Settings.tailleCase
-		c = (abscisse-Settings.epaisseurTrait)//Settings.tailleCase
-
+		(c, l) = pointAttaque
 		self.figuresAttaque['attaque'].append(grille.create_line(
 			((Settings.tailleCase)*c) + Settings.epaisseurTrait,
 			((Settings.tailleCase)*l)+ Settings.epaisseurTrait,
