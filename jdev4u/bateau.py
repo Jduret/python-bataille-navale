@@ -35,7 +35,7 @@ class Bateau:
 		(c, l) = pointAncrage
 		ancrage = []
 		for i in range(self.taille):
-			ancrage.append(str(c) + str(l))
+			ancrage.append(Settings.pointToCase([c, l]))
 
 			if('horizontal' == self.sens):
 				c = c + 1

@@ -1,4 +1,5 @@
 import os
+import re
 
 #Un petit  objet d'utilitaire pourrait êtr renommé en Utils ou Globals
 class Settings:
@@ -26,7 +27,8 @@ class Settings:
 	#En cas de souci de fenêtre qui n'apparait pas, essayer de désactiver ce paramètre
 	enableWindowUpdate = False
 
-	@staticmethod
+	columnList = None
+
 	def	eventToPoint(event):
 		abscisse = event.x
 		ordonnee = event.y
@@ -36,6 +38,17 @@ class Settings:
 		#transformation en 1, 1
 		return [c + 1, l + 1]
 
+	def pointToCase(point):
+		(c, l) = point
+		return Settings.columnToChar(c) + str(l)
+
+	def caseToPoint(case):
+		match = re.match(r"([a-z]+)([0-9]+)", case, re.I)
+
+		(columnChar, line) = match.groups()
+		return [Settings.charToColumn(columnChar), int(line)]
+
+
 	def array_merge( first_array , second_array ):
 		if isinstance( first_array , list ) and isinstance( second_array , list ):
 			return first_array + second_array
@@ -44,3 +57,33 @@ class Settings:
 		elif isinstance( first_array , set ) and isinstance( second_array , set ):
 			return first_array.union( second_array )
 		return False
+
+	def getColumnList():
+		if(None == Settings.columnList):
+			Settings.columnList = Settings.sizeToColumnList(Settings.tailleGrille)
+		return Settings.columnList
+
+	def sizeToColumnList(size):
+		alphabet = list('abcdefghijklmnopqrstuvwxyz')
+		charlist = []
+		prefix = []
+		for x in range(0, size):
+			if(x > 0 and 0 == (x % len(alphabet)) ):
+				if(0 == len(prefix) or prefix[-1] == alphabet[-1]) :
+					if(0 < len(prefix)) :
+						prefix[-1] = alphabet[0]
+					prefix.append(alphabet[0])
+				else :
+					prefix[-1] = alphabet[alphabet.index(prefix[-1]) + 1]
+			charlist.append(''.join(prefix) + alphabet[(x % len(alphabet))])
+		return charlist
+
+
+	def columnToChar(column) :
+		alphabet = Settings.getColumnList()
+		return alphabet[column]
+
+	def charToColumn(char) :
+		alphabet = Settings.getColumnList()
+		return alphabet.index(char)
+

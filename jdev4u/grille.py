@@ -42,7 +42,7 @@ class Grille:
 	def retournerBateau(self, event, bateau):
 		currentSens = bateau.sens
 		newSens = 'horizontal' if('vertical' == currentSens) else 'vertical'
-		pointAncrage = list(map(lambda point : int(point), list(bateau.ancrage[0])))
+		pointAncrage = Settings.caseToPoint(bateau.ancrage[0])
 		#Si l'on veut modifier aussi le point d'ancrage lors d'une rotation
 		#pointAncrage = Settings.eventToPoint(event)
 		bateau.sens = newSens
@@ -54,8 +54,9 @@ class Grille:
 	def isIn(self, bateau, pointAncrage):
 		(c, l) = pointAncrage
 		return (
-			('horizontal' == bateau.sens and c + bateau.taille <= Settings.tailleGrille)
-			or ('vertical' == bateau.sens and l + bateau.taille <= Settings.tailleGrille)
+			c > 0 and l > 0 and
+			(('horizontal' == bateau.sens and c - 1 + bateau.taille <= Settings.tailleGrille)
+			or ('vertical' == bateau.sens and l - 1 + bateau.taille <= Settings.tailleGrille))
 		)
 	def seCroise(self, bateau, pointAncrage):
 		for case in bateau.listeCasesBateau(pointAncrage):
@@ -70,7 +71,8 @@ class Grille:
 		del self.bateaux[bateau.nom]
 
 	def toucheCoule(self, pointAttaque):
-		case = str(pointAttaque[0]) + str(pointAttaque[1])
+		case = Settings.pointToCase(pointAttaque)
+		#si on a deja attaqué, on ne réattaque pas
 		if(case in self.emplacementsAttaque):
 			return False
 		self.emplacementsAttaque.append(case)
@@ -157,7 +159,11 @@ class Grille:
 
 	def placerCoule(self, bateau):
 		grille = self.grilleGraphique
+		#premierPoint = bateau.ancrage[0]
+		#dernierPoint = bateau.ancrage[-1]
 		#self.figuresAttaque.append(grille.create_line(
+
+		#))
 
 	def viderGrille(self):
 		for figure in self.figuresAttaque:
