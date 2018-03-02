@@ -44,6 +44,7 @@ class Jeu:
 		self.currentBateau = None
 		self.nbTours = 0
 		self.nbToursStatus.set('En attente...');
+		self.plateau.status.set('Placez vos bateaux')
 
 	def getBateaux(self, refresh = False):
 		if self._bateauxDisponibles == None or refresh == True :
@@ -86,7 +87,6 @@ class Jeu:
 			loop = True
 			while(loop):
 				loop = (False == self.attaquer(self.joueurs[self.currentJoueur].attaqueAleatoire()))
-		self.nbToursStatus.set('Au tour de ' + self.currentJoueur)
 
 	#Return touche | coule | aleau
 	def attaquer(self, event):
@@ -94,6 +94,12 @@ class Jeu:
 		result, bateau = self.joueurs[self.currentJoueur].getAdversaire(self.joueurs).attaque(pointAttaque)
 		if(False == result) :
 			return False
+		#cas spécial à l'eau
+		if(result == 'aleau'):
+			self.joueurs[self.currentJoueur].getAdversaire(self.joueurs).grille.placerAleau(pointAttaque)
+		#dans tous les autres cas que à l'eau, on place une touche
+		else :#if(result=='touche' or result=='coule' or result=='win'):
+			self.joueurs[self.currentJoueur].getAdversaire(self.joueurs).grille.placerTouche(pointAttaque)
 		#cas spécial de la victoire
 		if(result == 'win'):
 			self.joueurs[Joueur.JOUEUR_PC].grille.unbindClic()
@@ -101,16 +107,24 @@ class Jeu:
 				self.plateau.winner(self.joueurs[self.currentJoueur])
 		#cas spécial du coulé
 		if(result == 'coule'):
-				self.joueurs[self.currentJoueur].getAdversaire(self.joueurs).grille.placerCoule(bateau)
-		#cas spécial à l'eau
-		if(result == 'aleau'):
-			self.joueurs[self.currentJoueur].getAdversaire(self.joueurs).grille.placerAleau(pointAttaque)
-		#dans tous les autres cas que à l'eau, on place une touche
-		else :#if(result=='touche' or result=='coule' or result=='win'):
-			self.joueurs[self.currentJoueur].getAdversaire(self.joueurs).grille.placerTouche(pointAttaque)
+			self.joueurs[self.currentJoueur].getAdversaire(self.joueurs).grille.placerCoule(bateau)
 			self.nbToursStatus.set('Bateau ' + bateau.nom + ' ' + result + '.')
+			self.plateau.status.set(
+				self.joueurs[Joueur.JOUEUR_PC].name.get() + ' ' + str(len(self.joueurs[Joueur.JOUEUR_HUMAIN].grille.bateaux)) + '/' + str(len(self.getBateaux()))
+				+ ' ' + self.joueurs[Joueur.JOUEUR_HUMAIN].name.get() + ' ' + str(len(self.joueurs[Joueur.JOUEUR_PC].grille.bateaux)) + '/' + str(len(self.getBateaux()))
+			)
+		if(self.currentJoueur == Joueur.JOUEUR_HUMAIN):
+			self.nbTours += 1
+			resultStatus = {
+				'touche' : 'touché',
+				'coule' : 'coulé',
+				'aleau' : 'à l\'eau',
+				'win' : 'gagné!!'
+			}
+			self.nbToursStatus.set('Attaque ' + str(self.nbTours) + ' ' + Settings.pointToCase(pointAttaque) + ' ' + resultStatus[result])
 		#certaines regles permettent à un attaquant de rejouer en cas de succès
 		#pour mettre en place cette règle, il suffit de déplacer joueurSuivant dans le case 'aleau'
+		#et de faire en sorte que attaquer retourne False
 		self.joueurSuivant()
 
 		return result

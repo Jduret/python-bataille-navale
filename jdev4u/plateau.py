@@ -142,6 +142,10 @@ class Plateau:
 		for bateau in self.jeu.joueurs[joueurType].grille.bateaux.values():
 			bateau.unbindMove(self.jeu.joueurs[joueurType].grille)
 		self.jeu.joueurs[joueurType].getAdversaire(self.jeu.joueurs).grille.bindClic(self.jeu.attaquer)
+		self.status.set(
+			self.jeu.joueurs[Joueur.JOUEUR_PC].name.get() + ' ' + str(len(self.jeu.joueurs[Joueur.JOUEUR_HUMAIN].grille.bateaux)) + '/' + str(len(self.jeu.getBateaux()))
+			+ ' ' + self.jeu.joueurs[Joueur.JOUEUR_HUMAIN].name.get() + ' ' + str(len(self.jeu.joueurs[Joueur.JOUEUR_PC].grille.bateaux)) + '/' + str(len(self.jeu.getBateaux()))
+		)
 
 	def recommencer(self):
 		self.elements['messageHumain'].configure(text=Settings.defaultHumainName)

@@ -8,7 +8,7 @@ from tkinter import *
 class Grille:
 	bateaux = {}
 	emplacements = {}
-	emplacementsAttaque = []
+	emplacementsAttaque = {}
 
 	grilleGraphique = None
 	isGraphic = True
@@ -74,9 +74,8 @@ class Grille:
 	def toucheCoule(self, pointAttaque):
 		case = Settings.pointToCase(pointAttaque)
 		#si on a deja attaqué, on ne réattaque pas
-		if(case in self.emplacementsAttaque):
+		if(case in self.emplacementsAttaque.keys()):
 			return False, None
-		self.emplacementsAttaque.append(case)
 		result = 'aleau'
 
 		bateau = self.getBateau(case)
@@ -88,6 +87,7 @@ class Grille:
 				self.removeBateau(bateau)
 				if(len(self.bateaux) == 0):
 					result = 'win'
+		self.emplacementsAttaque[case] = result
 		return result, bateau
 
 	def addGrille(self, placement):
@@ -188,5 +188,5 @@ class Grille:
 			bateau.pointAncrage = None
 		self.figuresAttaque = []
 		self.bateaux = {}
-		self.emplacementsAttaque = []
+		self.emplacementsAttaque = {}
 		self.emplacements = {}

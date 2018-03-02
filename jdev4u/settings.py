@@ -29,6 +29,7 @@ class Settings:
 	enableWindowUpdate = False
 
 	columnList = None
+	hardLevel = False
 
 	def	eventToPoint(event):
 		abscisse = event.x
@@ -71,7 +72,7 @@ class Settings:
 		return Settings.columnList
 
 	def sizeToColumnList(size):
-		alphabet = list('abcdefghijklmnopqrstuvwxyz')
+		alphabet = list('ABCDEFGHIJKLMNOPQRSTUVWXYZ')
 		charlist = []
 		prefix = []
 		for x in range(0, size):
@@ -93,4 +94,19 @@ class Settings:
 	def charToColumn(char) :
 		alphabet = Settings.getColumnList()
 		return alphabet.index(char) + 1
+
+	def getAroundPoints(point):
+		(c, l) = point
+		listPoints = []
+		for pt in [
+			[c+1, l],
+			[c-1, l],
+			[c, l+1],
+			[c, l-1]
+		] :
+			(colonne, ligne) = pt
+			if(colonne <= Settings.tailleGrille
+				and ligne <= Settings.tailleGrille):
+				listPoints.append(pt)
+		return listPoints
 
