@@ -9,6 +9,7 @@ class Bateau:
 
 	jeu = None
 	elementGraphique = None
+	pointAncrage = None
 	ancrage = []
 	sens = None
 

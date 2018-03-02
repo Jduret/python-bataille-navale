@@ -1,6 +1,8 @@
 from jdev4u.grille import *
 from tkinter import *
 from tkinter import StringVar
+from random import *
+import copy
 
 class Joueur:
 	TYPE = 'undefined'
@@ -48,19 +50,32 @@ class JoueurPc(Joueur):
 		return false
 
 	def placementBateauAleatoire(self, bateaux):
-		c = l = 1
+		sens = ['horizontal', 'vertical']
 		for bateau in bateaux.values():
-			pointAncrage = [c, l]
+			bateau = copy.deepcopy(bateau)
+			bateauPlace = False
+			#on cherche un emplacement libre
+			while(False == bateauPlace) :
+				cMax = lMax = Settings.tailleGrille
+				bateau.sens = sens[randint(0,1)]
+				if(bateau.sens == 'horizontal'):
+					cMax -= bateau.taille
+				else :
+					lMax -= bateau.taille
+				pointAncrage = [randint(1, cMax), randint(1, lMax)]
+				if(self.grille.isIn(bateau, pointAncrage) and False == self.grille.seCroise(bateau, pointAncrage)):
+					bateauPlace = True
+
 			self.grille.placerBateau(bateau, pointAncrage)
-			l = l + 1
 		return
 
-	def attaqueAleatoire(self, adversaire):
-		pointAttaque = [2, 2]
-		return adversaire.attaque(pointAttaque)
+	def attaqueAleatoire(self):
+		pointAttaque = [randint(1, Settings.tailleGrille), randint(1, Settings.tailleGrille)]
+		return Settings.pointToEvent(pointAttaque)
 
 class JoueurHumain(Joueur):
 	TYPE = 'humain'
+	isAutomatic = False
 
 	def createGrille(self):
 		self.grille.addGrille({'row' : 1, 'column' : 2})

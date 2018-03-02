@@ -1,5 +1,6 @@
 import os
 import re
+from jdev4u.automaticEvent import *
 
 #Un petit  objet d'utilitaire pourrait êtr renommé en Utils ou Globals
 class Settings:
@@ -37,6 +38,12 @@ class Settings:
 		#la première case est la 0, 0
 		#transformation en 1, 1
 		return [c + 1, l + 1]
+
+	def pointToEvent(point):
+		(c, l) = point
+		x = ((c - 1) * Settings.tailleCase) + Settings.epaisseurTrait
+		y = ((l - 1) * Settings.tailleCase) + Settings.epaisseurTrait
+		return AutomaticEvent(x, y)
 
 	def pointToCase(point):
 		(c, l) = point
@@ -81,9 +88,9 @@ class Settings:
 
 	def columnToChar(column) :
 		alphabet = Settings.getColumnList()
-		return alphabet[column]
+		return alphabet[column-1]
 
 	def charToColumn(char) :
 		alphabet = Settings.getColumnList()
-		return alphabet.index(char)
+		return alphabet.index(char) + 1
 

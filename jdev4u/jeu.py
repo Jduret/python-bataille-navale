@@ -83,23 +83,32 @@ class Jeu:
 	def joueurSuivant(self):
 		self.currentJoueur = Joueur.JOUEUR_HUMAIN if self.currentJoueur == Joueur.JOUEUR_PC  else Joueur.JOUEUR_PC
 		if(self.joueurs[self.currentJoueur].isAutomatic):
-			self.joueurs[self.currentJoueur].attaqueAleatoire(self.joueurs[self.currentJoueur].getAdversaire(self.joueurs))
-			self.joueurSuivant()
+			loop = True
+			while(loop):
+				loop = (False == self.attaquer(self.joueurs[self.currentJoueur].attaqueAleatoire()))
+		self.nbToursStatus.set('Au tour de ' + self.currentJoueur)
 
 	#Return touche | coule | aleau
 	def attaquer(self, event):
 		pointAttaque = Settings.eventToPoint(event)
-		result = self.joueurs[self.currentJoueur].getAdversaire(self.joueurs).attaque(pointAttaque)
+		result, bateau = self.joueurs[self.currentJoueur].getAdversaire(self.joueurs).attaque(pointAttaque)
 		if(False == result) :
-			return
+			return False
+		#cas spécial de la victoire
 		if(result == 'win'):
 			self.joueurs[Joueur.JOUEUR_PC].grille.unbindClic()
 			if(None != self.plateau):
 				self.plateau.winner(self.joueurs[self.currentJoueur])
+		#cas spécial du coulé
+		if(result == 'coule'):
+				self.joueurs[self.currentJoueur].getAdversaire(self.joueurs).grille.placerCoule(bateau)
+		#cas spécial à l'eau
 		if(result == 'aleau'):
 			self.joueurs[self.currentJoueur].getAdversaire(self.joueurs).grille.placerAleau(pointAttaque)
+		#dans tous les autres cas que à l'eau, on place une touche
 		else :#if(result=='touche' or result=='coule' or result=='win'):
 			self.joueurs[self.currentJoueur].getAdversaire(self.joueurs).grille.placerTouche(pointAttaque)
+			self.nbToursStatus.set('Bateau ' + bateau.nom + ' ' + result + '.')
 		#certaines regles permettent à un attaquant de rejouer en cas de succès
 		#pour mettre en place cette règle, il suffit de déplacer joueurSuivant dans le case 'aleau'
 		self.joueurSuivant()

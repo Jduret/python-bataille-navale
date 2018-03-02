@@ -8,8 +8,6 @@ from tkinter import StringVar
 import os
 #Attention, on importe pas tous car os conteint AUSSI une méthode open
 #from os import *
-from copy import *
-from random import *
 from math import *
 from sys import *
 from jdev4u.settings import *

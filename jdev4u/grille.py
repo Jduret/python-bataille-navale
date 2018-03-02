@@ -68,13 +68,14 @@ class Grille:
 		for emplacement in dict(self.emplacements):
 			if(bateau.nom == self.emplacements[emplacement]):
 				del self.emplacements[emplacement]
+		bateau.removeGraphique(self)
 		del self.bateaux[bateau.nom]
 
 	def toucheCoule(self, pointAttaque):
 		case = Settings.pointToCase(pointAttaque)
 		#si on a deja attaqué, on ne réattaque pas
 		if(case in self.emplacementsAttaque):
-			return False
+			return False, None
 		self.emplacementsAttaque.append(case)
 		result = 'aleau'
 
@@ -87,7 +88,7 @@ class Grille:
 				self.removeBateau(bateau)
 				if(len(self.bateaux) == 0):
 					result = 'win'
-		return result
+		return result, bateau
 
 	def addGrille(self, placement):
 		self.grilleGraphique = self.createGrille();
@@ -151,19 +152,33 @@ class Grille:
 		c -= 1
 		l -= 1
 		self.figuresAttaque.append(grille.create_oval(
-			Settings.tailleCase*c+Settings.tailleCase + (2*Settings.epaisseurTrait) - Settings.tailleRond,
-			Settings.tailleCase*l+Settings.tailleCase + (2*Settings.epaisseurTrait) - Settings.tailleRond,
+			Settings.tailleCase*(c+1) + (2*Settings.epaisseurTrait) - Settings.tailleRond,
+			Settings.tailleCase*(l+1) + (2*Settings.epaisseurTrait) - Settings.tailleRond,
 			Settings.tailleCase*c+Settings.tailleRond,
 			Settings.tailleCase*l+Settings.tailleRond,
 			width = Settings.epaisseurMarques, outline = 'red'))
 
 	def placerCoule(self, bateau):
 		grille = self.grilleGraphique
-		#premierPoint = bateau.ancrage[0]
-		#dernierPoint = bateau.ancrage[-1]
-		#self.figuresAttaque.append(grille.create_line(
-
-		#))
+		ancrage = bateau.listeCasesBateau(bateau.pointAncrage)
+		(c1, l1) = Settings.caseToPoint(ancrage[0])
+		(c2, l2) = Settings.caseToPoint(ancrage[-1])
+		if(bateau.sens == 'horizontal'):
+			self.figuresAttaque.append(grille.create_line(
+				(Settings.tailleCase*(c1 - 1)) + (Settings.epaisseurTrait),
+				(Settings.tailleCase*(l1 - 0.5))+ (Settings.epaisseurTrait),
+				(Settings.tailleCase*(c2)) + (Settings.epaisseurTrait),
+				(Settings.tailleCase*(l2 - 0.5))+ (Settings.epaisseurTrait),
+			width = Settings.epaisseurMarques, fill = 'red'
+			))
+		else :
+			self.figuresAttaque.append(grille.create_line(
+				(Settings.tailleCase*(c1 - 0.5)) + (Settings.epaisseurTrait),
+				(Settings.tailleCase*(l1 - 1))+ (Settings.epaisseurTrait),
+				(Settings.tailleCase*(c2 - 0.5)) + (Settings.epaisseurTrait),
+				(Settings.tailleCase*(l2))+ (Settings.epaisseurTrait),
+			width = Settings.epaisseurMarques, fill = 'red'
+			))
 
 	def viderGrille(self):
 		for figure in self.figuresAttaque:
