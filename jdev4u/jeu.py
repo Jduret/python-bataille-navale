@@ -137,16 +137,15 @@ class Jeu:
 	def joueurSuivant(self):
 		self.currentJoueur = Joueur.JOUEUR_HUMAIN if self.currentJoueur == Joueur.JOUEUR_PC  else Joueur.JOUEUR_PC
 		if(self.joueurs[self.currentJoueur].isAutomatic):
-			loop = True
-			while(loop):
-				loop = (False == self.attaquer(self.joueurs[self.currentJoueur].getPointAttaqueAleatoire()))
+			self.attaquer(self.joueurs[self.currentJoueur].getPointAttaqueAleatoire(self.joueurs[self.currentJoueur].getAdversaire(self.joueurs)))
 
 	#Return touche | coule | aleau
 	def attaquer(self, event):
 		pointAttaque = Globals.eventToPoint(event)
 		result, bateau = self.joueurs[self.currentJoueur].getAdversaire(self.joueurs).attaque(pointAttaque)
+		#cas en erreur inconnue, on tente de relancer le joueurSuivant
 		if(False == result) :
-			return False
+			self.joueurSuivant()
 		#on informe le joueur du résultat de son attaque
 		self.joueurs[self.currentJoueur].updateStats(result, pointAttaque)
 		#cas spécial à l'eau

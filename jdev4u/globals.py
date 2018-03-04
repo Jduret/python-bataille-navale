@@ -29,7 +29,11 @@ class Globals:
 	enableWindowUpdate = False
 
 	columnList = None
-	hardLevel = False
+	#0 = pas d'intelligence
+	#1 = on attaque une cible autour du dernier point touché
+	#2 = on tente de ce concentrer sur la cible lorsque l'on touche
+	#ce dernier point n'est pas encore fonctionnel car cela nécessite de connaitre le nom du bateau coulé
+	hardLevel = 1
 
 	def	eventToPoint(event):
 		abscisse = event.x

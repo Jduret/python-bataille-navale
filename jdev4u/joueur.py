@@ -88,22 +88,26 @@ class JoueurPc(Joueur):
 			self.grille.placerBateau(bateau, pointAncrage)
 		return
 
-	def getPointAttaqueAleatoire(self):
+	def getPointAttaqueAleatoire(self, adversaire):
 		pointAttaque = [randint(1, Globals.tailleGrille), randint(1, Globals.tailleGrille)]
 
+		#creation d'une liste de point possible pour l'attaque
+		# le dernier point sera toujours celui issue de la plus grande intelligence
+		pointAttaquePossible = [pointAttaque]
+
 		#si on a touché un bateau, on tourne autour pour le trouver
-		if(Globals.hardLevel == True and self.stats['lastTouche']!= None) :
+		if(Globals.hardLevel > 0 and self.stats['lastTouche']!= None) :
 			for point in Globals.getAroundPoints( self.stats['lastTouche']):
-				print(point)
-				if(False == (Globals.pointToCase(point) in self.grille.emplacementsAttaque.keys())):
-					pointAttaque = point
-				else :
+				if(False == (Globals.pointToCase(point) in adversaire.grille.emplacementsAttaque.keys())):
+					pointAttaquePossible.append(point)
+				if(Globals.hardLevel > 1) :
 					#on a un point et un sens pour le bateau
 					if('touche' == self.grille.emplacementsAttaque[Globals.pointToCase(point)]):
-						pointAttaque = self.findNextPoint([ self.stats['lastTouche'], point])
-						if (False != pointAttaque) :
+						pointAttaqueTrouve = self.findNextPoint([ self.stats['lastTouche'], point])
+						pointAttaquePossible.append(pointAttaqueTrouve)
+						if (False != pointAttaqueTrouve) :
 							break
-		return Globals.pointToEvent(pointAttaque)
+		return Globals.pointToEvent(pointAttaquePossible[-1])
 
 	def findNextPoint(semf, points):
 		(c1, l1) = points[0]
