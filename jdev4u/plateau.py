@@ -18,7 +18,6 @@ class Plateau:
 	#instance de Jeu
 	jeu = None
 	bateauText = None
-	status = None
 
 	#Dans ce tableau on va placer tous les éléments graphique nécessaire à l'interface
 	elements = {}
@@ -28,12 +27,9 @@ class Plateau:
 		batailleNavale.plateau = self
 		self.jeu = batailleNavale
 		self.bateauText = StringVar()
-		self.status = StringVar()
-
-		self.status.set('Placez vos bateaux')
 		self.bateauText.set('')
 
-		self.elements['messageStatus'] = Label(Globals.window, anchor= W, textvariable=self.status)
+		self.elements['messageStatus'] = Label(Globals.window, anchor= W, textvariable=self.jeu.score)
 		#le columnspan ici permet de faire en sorte que le texte se place sur toute la largeur de la fenêtre
 		self.elements['messageStatus'].grid(row = 0, column = 0, padx=3, pady=3, columnspan=3, sticky = W+E)
 
@@ -56,7 +52,7 @@ class Plateau:
 
 		def askName():
 			self.jeu.joueurs[Joueur.JOUEUR_HUMAIN].name.set(simpledialog.askstring('Nouveau nom', Globals.window))
-			#self.elements['messageHumain'].configure(text=answer)
+			self.jeu.updateAffichageScore()
 
 		self.elements['boutonChangeNom'] = Button(Globals.window, text='Changer nom', command=askName)
 		self.elements['boutonChangeNom'].grid(row = 4, column = 1, padx = 3, pady = 3, sticky = S+W+E)
@@ -142,10 +138,6 @@ class Plateau:
 		for bateau in self.jeu.joueurs[joueurType].grille.bateaux.values():
 			bateau.unbindMove(self.jeu.joueurs[joueurType].grille)
 		self.jeu.joueurs[joueurType].getAdversaire(self.jeu.joueurs).grille.bindClic(self.jeu.attaquer)
-		self.status.set(
-			self.jeu.joueurs[Joueur.JOUEUR_PC].name.get() + ' ' + str(len(self.jeu.joueurs[Joueur.JOUEUR_HUMAIN].grille.bateaux)) + '/' + str(len(self.jeu.getBateaux()))
-			+ ' ' + self.jeu.joueurs[Joueur.JOUEUR_HUMAIN].name.get() + ' ' + str(len(self.jeu.joueurs[Joueur.JOUEUR_PC].grille.bateaux)) + '/' + str(len(self.jeu.getBateaux()))
-		)
 
 	def recommencer(self):
 		self.elements['messageHumain'].configure(text=Globals.defaultHumainName)

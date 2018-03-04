@@ -1,8 +1,10 @@
+import copy
+import pickle
+from tkinter import StringVar
+
 from jdev4u.joueur import *
 from jdev4u.bateau import *
 from jdev4u.plateau import *
-import copy
-from tkinter import StringVar
 
 #
 # Class de gestion du jeu
@@ -18,6 +20,9 @@ class Jeu:
 	plateau = None
 	nbTours = 0
 	nbToursStatus = None
+	nomFichierScore = 'scores.db'
+	scores = None
+	score = None
 
 	def __init__(self):
 		# Drapeau permettant de connaitre le joueur suivant
@@ -25,6 +30,8 @@ class Jeu:
 		self.currentJoueur = Joueur.JOUEUR_HUMAIN;
 		self.currentBateau = None
 		self.nbToursStatus = StringVar()
+		self.score = StringVar()
+
 		#Le jeu bataille navale est fait de 2 joueurs
 		#le PC
 		self.joueurs[Joueur.JOUEUR_PC] = JoueurPc()
@@ -34,6 +41,9 @@ class Jeu:
 		self.joueurs[Joueur.JOUEUR_HUMAIN] = JoueurHumain()
 		if(self.joueurs[Joueur.JOUEUR_HUMAIN].isAutomatic):
 			self.joueurs[Joueur.JOUEUR_HUMAIN].placementBateauAleatoire(self.getBateaux())
+		#ajout de la gestion des scores
+		self.recupererScores()
+		self.updateAffichageScore()
 
 	#	Méthode permettant de réinitialiser une partie
 	def recommencer(self):
@@ -44,7 +54,50 @@ class Jeu:
 		self.currentBateau = None
 		self.nbTours = 0
 		self.nbToursStatus.set('En attente...');
-		self.plateau.status.set('Placez vos bateaux')
+
+	def buildPath (self, fichierPath):
+		return os.path.join(Globals.__location__, fichierPath)
+	# fonctions permettant d'enregistrer les scores des joueurs.
+	# Créé un fichier pour le joueur s'il n'existe pas, ajoute 1 point s'il a gagné au score précédent
+	def enregistrerScores(self):
+		fichier_scores=open(self.buildPath(self.nomFichierScore),"wb")
+		mon_pickler=pickle.Pickler(fichier_scores)
+		mon_pickler.dump(self.scores)
+		fichier_scores.close()
+
+	def recupererScores(self):
+		"""
+		Permet de récuperer la liste des scores
+		retourne Vrai si la liste à été chargée, Faux sinon
+		"""
+		self.scores={}
+		if os.path.exists(self.buildPath(self.nomFichierScore)):
+			fichier_scores=open(self.buildPath(self.nomFichierScore),"rb")
+			mon_depickler=pickle.Unpickler(fichier_scores)
+			self.scores=mon_depickler.load()
+			fichier_scores.close()
+			return True
+		return False
+
+	def updateAffichageScore(self):
+		self.score.set( 'Scores : '
+			+ self.joueurs[Joueur.JOUEUR_PC].name.get() + ' ' + str(self.getScore(self.joueurs[Joueur.JOUEUR_PC].name.get()))
+			+ ' ' + self.joueurs[Joueur.JOUEUR_HUMAIN].name.get() + ' ' + str(self.getScore(self.joueurs[Joueur.JOUEUR_HUMAIN].name.get()))
+		)
+
+	def getScore(self, nomJoueur):
+		return self.scores[nomJoueur] if nomJoueur in self.scores.keys() else 0
+
+	def ajouterScore(self, nomJoueur):
+		"""
+		Gestion des scores : ajoute un point au gagnant reférencé par son nom
+		"""
+		if nomJoueur not in self.scores.keys():
+		    self.scores[nomJoueur]=0
+		self.scores[nomJoueur] += 1
+		self.enregistrerScores()
+		self.updateAffichageScore()
+
 
 	def getBateaux(self, refresh = False):
 		if self._bateauxDisponibles == None or refresh == True :
@@ -56,7 +109,7 @@ class Jeu:
 
 	def _readConfigFile(self, fichierPath = 'include/bateaux.txt'):
 		result = {}
-		file = open(os.path.join(Globals.__location__, fichierPath), 'r')
+		file = open(self.buildPath(fichierPath), 'r')
 		for ligne in file:
 			name, size = ligne.split(';')
 			result[name] = Bateau(name, size)
@@ -107,14 +160,11 @@ class Jeu:
 			self.joueurs[Joueur.JOUEUR_PC].grille.unbindClic()
 			if(None != self.plateau):
 				self.plateau.winner(self.joueurs[self.currentJoueur])
+			self.ajouterScore(self.joueurs[self.currentJoueur].name.get())
 		#cas spécial du coulé
 		if(result == 'coule'):
 			self.joueurs[self.currentJoueur].getAdversaire(self.joueurs).grille.placerCoule(bateau)
 			self.nbToursStatus.set('Bateau ' + bateau.nom + ' ' + result + '.')
-			self.plateau.status.set(
-				self.joueurs[Joueur.JOUEUR_PC].name.get() + ' ' + str(len(self.joueurs[Joueur.JOUEUR_HUMAIN].grille.bateaux)) + '/' + str(len(self.getBateaux()))
-				+ ' ' + self.joueurs[Joueur.JOUEUR_HUMAIN].name.get() + ' ' + str(len(self.joueurs[Joueur.JOUEUR_PC].grille.bateaux)) + '/' + str(len(self.getBateaux()))
-			)
 		if(self.currentJoueur == Joueur.JOUEUR_HUMAIN):
 			self.nbTours += 1
 			resultStatus = {
