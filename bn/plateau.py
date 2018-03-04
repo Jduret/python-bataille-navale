@@ -1,220 +1,170 @@
+# Sous licence Apache-2.0
+
 ##----- Importation des Modules -----##
 from __future__ import generators
 from tkinter import *
 from tkinter import messagebox
 from tkinter import simpledialog
+from tkinter import StringVar
 
-import string
 import os
-#Attention, on n'importe pas tout car os contient AUSSI une méthode open
+#Attention, on importe pas tout car os contient AUSSI une méthode open
 #from os import *
-from copy import *
-from random import *
 from math import *
 from sys import *
 from bn.settings import *
 from bn.bateau import *
+from bn.joueur import *
 
 class Plateau:
-	#instance de Tk
-	window = None
-	#instance de Jeu	
+	#instance de Jeu
 	jeu = None
 	bateauText = None
-	
-	#Dans ce tableau on va placer tous les éléments graphiques nécessaires à l'interface
+	status = None
+
+	#Dans ce tableau on va placer tous les éléments graphique nécessaire à l'interface
 	elements = {}
-	
-	def __init__(self, window, batailleNavale):
-		self.window = window
+
+	def __init__(self, batailleNavale):
+		#cas d'une dépendance croisée. A limiter au strict nécessaire
+		batailleNavale.plateau = self
 		self.jeu = batailleNavale
 		self.bateauText = StringVar()
+		self.status = StringVar()
+
+		self.status.set('Placez vos bateaux')
 		self.bateauText.set('')
-		
-		self.elements['figuresGrilleHumain'] = []
-		self.elements['figuresGrillePc'] = []
-		
+
+		self.elements['messageStatus'] = Label(Settings.window, anchor= W, textvariable=self.status)
+		#le columnspan ici permet de faire en sorte que le texte se place sur toute la largeur de la fenêtre
+		self.elements['messageStatus'].grid(row = 0, column = 0, padx=3, pady=3, columnspan=3, sticky = W+E)
+
+		self.elements['messageAttaque'] = Label(Settings.window, textvariable=self.jeu.nbToursStatus)
+		self.elements['messageAttaque'].grid(row = 0, column = 2, padx=3, pady=3, sticky = W+E)
+
 		##----- Zones de texte -----##
-		self.elements['messagePc'] = Label(self.window, text='PC')
+		self.elements['messagePc'] = Label(Settings.window, text='Joueur PC')
 		self.elements['messagePc'].grid(row = 2, column = 0, padx=3, pady=3, sticky = W+E)
 
-		self.elements['messageHumain'] = Label(self.window, text=Settings.defaultHumainName)
+		self.elements['messageHumain'] = Label(Settings.window, textvariable=self.jeu.joueurs[Joueur.JOUEUR_HUMAIN].name)
 		self.elements['messageHumain'].grid(row = 2, column = 2, padx=3, pady=3, sticky = W+E)
-		
+
 		#Boutons
-		self.elements['boutonQuitter'] =  Button(self.window, text='Quitter', command = self.window.destroy, width= 20)
+		self.elements['boutonQuitter'] = Button(Settings.window, text='Quitter', command = Settings.window.destroy)
 		self.elements['boutonQuitter'].grid(row = 4, column = 2, padx = 3, pady = 3,sticky=S+W+E)
-		
-		self.elements['boutonRecommencer'] = Button(self.window, text='Nouvelle partie', command=self.recommencer, width= 20)
+
+		self.elements['boutonRecommencer'] = Button(Settings.window, text='Nouvelle partie', command=self.recommencer)
 		self.elements['boutonRecommencer'].grid(row = 4, column = 0, padx = 3, pady = 3, sticky = S+W+E)
-		
+
 		def askName():
-			answer = simpledialog.askstring('Nouveau nom', self.window)
-			self.elements['messageHumain'].configure(text=answer)
-			
-		self.elements['boutonChangeNom'] = Button(self.window, text='Changer nom', command=askName, width= 20)
+			self.jeu.joueurs[Joueur.JOUEUR_HUMAIN].name.set(simpledialog.askstring('Nouveau nom', Settings.window))
+			#self.elements['messageHumain'].configure(text=answer)
+
+		self.elements['boutonChangeNom'] = Button(Settings.window, text='Changer nom', command=askName)
 		self.elements['boutonChangeNom'].grid(row = 4, column = 1, padx = 3, pady = 3, sticky = S+W+E)
-		
+
+		self.elements['BateauTitle'] = Label(Settings.window, text='Placement bateau :')
+		self.elements['BateauTitle'].place(relx=0.5, rely=0.1, anchor= CENTER, relwidth=0.4)
+		self.elements['CurrentBateau'] = Label(Settings.window, textvariable=self.bateauText)
+		self.elements['CurrentBateau'].place(in_=self.elements['BateauTitle'], relx=0.5, rely=1.2,  bordermode='outside', anchor= CENTER)
+
 		self.createBateauxButtons()
 
-		#Grilles
-		self.elements['grillePc']= self.createGrille()
-		self.elements['grillePc'].grid(row = 1, column = 0, columnspan = 1, padx = 5, pady = 5)
-		
-		self.elements['grilleHumain'] = self.createGrille()
-		self.elements['grilleHumain'].grid(row = 1, column = 2, columnspan = 1, padx = 5, pady = 5)
-		
-		self.recommencer()
-		
-	def updatePosition(self):
-		#Current size
-		h = self.window.winfo_height()
-		w = self.window.winfo_width()
-		
-		#Si la fenêtre n'est pas encore dessinée, on reporte
-		if(h < 50):
-			self.window.after(50, self.updatePosition)
-			return
-		# get screen width and height
-		ws = self.window.winfo_screenwidth() # width of the screen
-		hs = self.window.winfo_screenheight() # height of the screen
+		#ajout des grilles
+		for joueurType in self.jeu.joueurs:
+			self.jeu.joueurs[joueurType].grille.addGrille(Settings.grillePlacement[joueurType])
 
-		# calculate x and y coordinates for the Tk root window
+		self.recommencer()
+
+	def updatePosition(self):
+		#Cette ligne permet de désactiver le replacement automatique de la fenêtre
+		if(Settings.enableWindowUpdate):
+			return;
+
+		#Taille actuelle de la fenêtre
+		h = Settings.window.winfo_height()
+		w = Settings.window.winfo_width()
+
+		#Si la fenêtre n'est pas encore dessiné, on reporte
+		#si la hauteur est inférieur à 50, alors on considère qu'elle n'est pas déssinée
+		if(h < 50):
+			Settings.window.after(50, self.updatePosition)
+			return
+		# Taille actuelle de l'écran
+		ws = Settings.window.winfo_screenwidth() # largeur de l'écran
+		hs = Settings.window.winfo_screenheight() # hauteur de l'écran
+
+		# calcul des coordonnées du point en haut à gauche de la fenêtre
 		x = (ws/2) - (w/2)
 		y = (hs/2) - (h/2)
 
-		# set the dimensions of the screen 
+		# set the dimensions of the screen
 		# and where it is placed
-		self.window.geometry('%dx%d+%d+%d' % (w, h, x, y))
-		
-	def bindPlacementBateaux(self):
-		self.elements['grilleHumain'].bind('<Button-1>',self.placerBateau)
+		Settings.window.geometry('%dx%d+%d+%d' % (w, h, x, y))
 
-	def unbindAll(self):
-		self.unbindAttaque()
-		self.unbindPlacement()
-		
-	def unbindAttaque(self):
-		self.elements['grillePc'].unbind('<Button-1>')
-	def unbindPlacement(self):
-		self.elements['grilleHumain'].unbind('<Button-1>')
-	
-	def bindAttaque(self):
-		self.elements['grillePc'].bind('<Button-1>', self.attaquer)
-	
-	def attaquer(self, event):
-		result = self.jeu.attaquer(self.elements['grillePc'], event)
-		if result == 'touche':
-			self.placerTouche(self.elements['grillePc'], event)
-		elif result == 'aleau':
-			self.placerAleau(self.elements['grillePc'], event)
-	
 	def createBateauxButtons(self):
-		self.elements['BateauTitle'] = Label(self.window, text='Placement bateau :')
-		self.elements['BateauTitle'].place(relx=0.5, rely=0.1, anchor= CENTER, relwidth=0.4)
-		self.elements['CurrentBateau'] = Label(self.window, textvariable=self.bateauText)
-		self.elements['CurrentBateau'].place(in_=self.elements['BateauTitle'], relx=0.5, rely=1.4, anchor=CENTER)
-		
+		#on initialise à None pour pouvoir gérer le placement des boutons relativement au bouton précédent (option "_in" de la méthode "place")
+		#et évidemment, le premier bouton n'a pas de précédent, et donc il sera placé relativement à la fenêtre (absence de l'option "_in")
 		lastShip = None
+		if('boutonBateau' in self.elements.keys()):
+			for bouton in self.elements['boutonBateau'].values():
+				bouton.destroy();
+		self.elements['boutonBateau'] = {}
+
 		for bateau in self.jeu.getBateaux():
+			self.elements['boutonBateau'][bateau] = Button(Settings.window, text=bateau, command=lambda  currentBateau = bateau:
+				self.placerBateau(bateauName = currentBateau, joueurType = Joueur.JOUEUR_HUMAIN)
+			)
+
 			if(None == lastShip):
-				self.elements['boutonBateau_' + bateau] = Button(self.window, text=bateau, command=lambda currentBateau = bateau: self.selectionBateau(bateauName = currentBateau))
-				self.elements['boutonBateau_' + bateau].place(relx=0.5, rely=0.2, anchor= CENTER, relwidth=0.4)
+				self.elements['boutonBateau'][bateau].place(relx=0.5, rely=0.2, anchor= CENTER, relwidth=0.4)
 			else :
-				self.elements['boutonBateau_' + bateau] = Button(self.window, text=bateau, command=lambda  currentBateau = bateau: self.selectionBateau(bateauName = currentBateau))
-				self.elements['boutonBateau_' + bateau].place(in_=self.elements['boutonBateau_' + lastShip], relx=0.5, anchor= CENTER, rely=1.5, relwidth=1, bordermode='outside')
+				self.elements['boutonBateau'][bateau].place(in_=self.elements['boutonBateau'][lastShip], relx=0.5, anchor= CENTER, rely=1.5, relwidth=1, bordermode='outside')
 			lastShip = bateau
-	
-	def createGrille(self):
-		largeur = Settings.tailleCase*Settings.tailleGrille + Settings.epaisseurTrait
-		grille = Canvas(self.window, bg=Settings.couleurFondGrille, width=largeur, height=largeur)
-		for i in range(Settings.tailleGrille +1):
-			grille.create_line(
-				0, 
-				Settings.tailleCase*i+(Settings.epaisseurTrait / 2), 
-				largeur, 
-				Settings.tailleCase*i+(Settings.epaisseurTrait / 2), 
-				width=Settings.epaisseurTrait)
-				
-			grille.create_line(
-				Settings.tailleCase*i+(Settings.epaisseurTrait / 2), 
-				0, 
-				Settings.tailleCase*i+(Settings.epaisseurTrait / 2), 
-				largeur, 
-				width=Settings.epaisseurTrait)
-		return grille
-	
-	def selectionBateau(self, bateauName):
-		bateau = self.jeu.getBateau(bateauName)
-		self.bateauText.set(bateau.nom + ' (' + str(bateau.taille) + ')')
-		self.jeu.currentBateau = bateau
-		
-	def placerBateau(self, event):
-		if(None == self.jeu.currentBateau):
+		#On ajoute un bouton de validation du placement des bateaux
+		self.elements['boutonBateau']['validerPlacement'] = Button(Settings.window, text='Valider', command=lambda :
+			self.validerPlacement(Joueur.JOUEUR_HUMAIN)
+		)
+		self.elements['boutonBateau']['validerPlacement'].place(in_=self.elements['boutonBateau'][lastShip], relx=0.5, anchor = CENTER, rely = 2.5, relwidth=1, bordermode='outside')
+
+	def placerBateau(self, bateauName, joueurType) :
+		self.bateauText.set(bateauName)
+		self.jeu.selectionBateau(bateauName, joueurType)
+
+	def validerPlacement(self, joueurType):
+		if(False == self.jeu.tousLesBateauxSontPlaces(joueurType)):
+			self.message('Tous les bateaux ne sont pas encore placés')
 			return
-		abscisse = event.x
-		ordonnee = event.y
-		l = (ordonnee-Settings.epaisseurTrait)//Settings.tailleCase
-		c = (abscisse-Settings.epaisseurTrait)//Settings.tailleCase 
-		self.jeu.currentBateau.placerAncrage(self.elements['grilleHumain'], [c, l])
-	
-	def placerAleau(self, grille, event):
-		abscisse = event.x
-		ordonnee = event.y
-		
-		l = (ordonnee-Settings.epaisseurTrait)//Settings.tailleCase
-		c = (abscisse-Settings.epaisseurTrait)//Settings.tailleCase 
-		
-		self.elements['figuresGrillePc'].append(grille.create_line(
-			((Settings.tailleCase)*c) + Settings.epaisseurTrait, 
-			((Settings.tailleCase)*l)+ Settings.epaisseurTrait,
-			((Settings.tailleCase)*(c+1)) + Settings.epaisseurTrait, 
-			((Settings.tailleCase)*(l+1))+ Settings.epaisseurTrait,
-			width = Settings.epaisseurMarques, fill = 'white'))
-		self.elements['figuresGrillePc'].append(grille.create_line(
-			((Settings.tailleCase)*(c+1)) + Settings.epaisseurTrait, 
-			((Settings.tailleCase)*l)+ Settings.epaisseurTrait,
-			((Settings.tailleCase)*c) + Settings.epaisseurTrait, 
-			((Settings.tailleCase)*(l+1))+ Settings.epaisseurTrait,
-			width = Settings.epaisseurMarques, fill = 'white'))
-		
-	def placerTouche(self, grille, event):
-		abscisse = event.x
-		ordonnee = event.y
-		
-		l = (ordonnee-Settings.epaisseurTrait)//Settings.tailleCase
-		c = (abscisse-Settings.epaisseurTrait)//Settings.tailleCase 
-		self.elements['figuresGrillePc'].append(grille.create_oval(
-			Settings.tailleCase*c+Settings.tailleCase + (2*Settings.epaisseurTrait) - Settings.tailleRond, 
-			Settings.tailleCase*l+Settings.tailleCase + (2*Settings.epaisseurTrait) - Settings.tailleRond, 
-			Settings.tailleCase*c+Settings.tailleRond, 
-			Settings.tailleCase*l+Settings.tailleRond, 
-			width = Settings.epaisseurMarques, outline = 'red'))
-		
+		#On désactive les boutons
+		if('boutonBateau' in self.elements.keys()):
+			for bouton in self.elements['boutonBateau'].values():
+				bouton.configure(state = DISABLED);
+
+		self.jeu.joueurs[joueurType].grille.unbindClic()
+		for bateau in self.jeu.joueurs[joueurType].grille.bateaux.values():
+			bateau.unbindMove(self.jeu.joueurs[joueurType].grille)
+		self.jeu.joueurs[joueurType].getAdversaire(self.jeu.joueurs).grille.bindClic(self.jeu.attaquer)
+
 	def recommencer(self):
-		for figure in self.elements['figuresGrilleHumain']:
-			self.elements['grilleHumain'].delete(figure)
-		for figure in self.elements['figuresGrillePc']:
-			self.elements['grillePc'].delete(figure)
-		bateaux = self.jeu.getBateaux()
-		for bateauName in bateaux :
-			bateaux[bateauName].removeGraphique(self.elements['grilleHumain'])
-			bateaux[bateauName].pointAncrage = None
 		self.elements['messageHumain'].configure(text=Settings.defaultHumainName)
 		self.jeu.recommencer()
-		self.bateauText.set('')
-		
-		#juste pour test, sera retiré par la suite
-		#il faut appeler ces méthodes au bon moment
-		self.bindPlacementBateaux()
-		self.bindAttaque()
-		
+		if('boutonBateau' in self.elements.keys()):
+			for bouton in self.elements['boutonBateau'].values():
+				bouton.configure(state = NORMAL);
+
+	def unbindAll(self):
+		for joueur in self.jeu.joueurs.values():
+			joueur.grille.unbindClic()
+
 	def message(self, text):
 		messagebox.showinfo(Settings.title, text)
-		
+
 	def winner(self, joueur):
 		self.unbindAll()
-		self.message('Bravo ' + joueur.name + ' tu as gagné!')
-		
-		
-		
+		if(joueur.TYPE == Joueur.JOUEUR_HUMAIN):
+			self.message('Bravo ' + joueur.name.get() + ' tu as gagné!')
+		else :
+			self.message('Dommage! PERDU...')
+
+
+

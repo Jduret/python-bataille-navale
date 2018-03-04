@@ -1,12 +1,19 @@
-from bn.grille import *
-import os
-import pickle
+# Sous licence Apache-2.0
 
+from bn.grille import *
+from tkinter import *
+from tkinter import StringVar
+from random import *
+import copy
 
 class Joueur:
 	TYPE = 'undefined'
 	JOUEUR_PC = 'pc'
 	JOUEUR_HUMAIN = 'humain'
+
+	name = None
+	grille = None
+	isAutomatic = False
 
 	def Factory(self, type):
 		if type in Joueur.__subclasses__():
@@ -14,56 +21,64 @@ class Joueur:
 		raise TypeError('Le type de joueur "' + type + '" est inconnu.')
 
 	def __init__(self, name = ''):
-		self.name = name if name != '' else  self.__class__.__name__
-		self.grille = Grille()
-		
-	def choisirCase(self, limitation = None):
-		raise NotImplementedError('Chaque type de joueur DOIT définir la méthode "choisirCase"')
-	
+		self.name = StringVar()
+		self.name.set(name if name != '' else  self.__class__.__name__)
+		self.grille = Grille(self.TYPE)
 
-	def enregistrer_scores(self,scores):
-		fichier_scores=open(nom_fichier_scores,"wb")
-		mon_pickler=pickle.Pickler(fichier_scores)
-		mon_pickler.dump(scores)
-		fichier_scores.close()
+	def createGrille(self):
+		raise NotImplementedError('Chaque type de joueur DOIT définir la méthode "createGraphique" permettant de générer le graphique de la grille')
 
-	# fonctions gérant les éléments saisis par l'utilisateur
-	def recup_nom_utilisateur(self):
-		nom_utilisateur=plateau.askName.answer()
-		nom_utilisateur=nom_utilisateur.capitalize()
-		if not nom_utilisateur.isalnum() or len(nom_utilisateur)<3:
-			print("ce nom est invalide")
-			return recup_nom_utilisateur()
-		else:
-			return nom_utilisateur
+	def getAdversaire(self, joueurs):
+		return joueurs[self.JOUEUR_PC] if (self.TYPE == self.JOUEUR_HUMAIN) else joueurs[self.JOUEUR_HUMAIN]
 
-	def recup_scores():
-		if os.path.exists(nom_fichier_scores):
-			fichier_scores=open(nom_fichier_scores,"rb")
-			mon_depickler=pickle.Unpickler(fichier_scores)
-			scores=mon_depickler.load()
-			fichier_scores.close()
-		else:
-			scores={}
-		return scores
+	def attaque(self, pointAttaque):
+		return self.grille.toucheCoule(pointAttaque)
 
-	
-	#Cette méthode va appeler la méthode choisir case autant de fois que nécessaire pour placer les bateaux
-	def placerBateaux(self):
-		return false
-		
-	def toucheCoule(self, point):
-		return false
+	def recommencer(self):
+		self.grille.viderGrille()
+
+
 
 class JoueurPc(Joueur):
 	TYPE = 'pc'
-	
-	def choisirCase(self, limitation = None):
+	isAutomatic = True
+
+	def __init__(self, name = ''):
+		Joueur.__init__(self, name)
+		self.grille.isGraphic = False
+
+	def createGrille(self):
+		self.grille.addGrille({'row' : 1, 'column' : 0})
 		return false
+
+	def placementBateauAleatoire(self, bateaux):
+		sens = ['horizontal', 'vertical']
+		for bateau in bateaux.values():
+			bateau = copy.deepcopy(bateau)
+			bateauPlace = False
+			#on cherche un emplacement libre
+			while(False == bateauPlace) :
+				cMax = lMax = Settings.tailleGrille
+				bateau.sens = sens[randint(0,1)]
+				if(bateau.sens == 'horizontal'):
+					cMax -= bateau.taille
+				else :
+					lMax -= bateau.taille
+				pointAncrage = [randint(1, cMax), randint(1, lMax)]
+				if(self.grille.isIn(bateau, pointAncrage) and False == self.grille.seCroise(bateau, pointAncrage)):
+					bateauPlace = True
+
+			self.grille.placerBateau(bateau, pointAncrage)
+		return
+
+	def attaqueAleatoire(self):
+		pointAttaque = [randint(1, Settings.tailleGrille), randint(1, Settings.tailleGrille)]
+		return Settings.pointToEvent(pointAttaque)
 
 class JoueurHumain(Joueur):
 	TYPE = 'humain'
-	
-	def choisirCase(self, limitation = None):
-		return false
+	isAutomatic = False
 
+	def createGrille(self):
+		self.grille.addGrille({'row' : 1, 'column' : 2})
+		return false
