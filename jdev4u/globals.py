@@ -2,8 +2,8 @@ import os
 import re
 from jdev4u.automaticEvent import *
 
-#Un petit  objet d'utilitaire pourrait êtr renommé en Utils ou Globals
-class Settings:
+#Un petit  objet d'utilitaire
+class Globals:
 	__location__ = os.getcwd()
 	window = None
 	title = 'Bataille Navale'
@@ -34,27 +34,27 @@ class Settings:
 	def	eventToPoint(event):
 		abscisse = event.x
 		ordonnee = event.y
-		l = (ordonnee-Settings.epaisseurTrait)//Settings.tailleCase
-		c = (abscisse-Settings.epaisseurTrait)//Settings.tailleCase
+		l = (ordonnee-Globals.epaisseurTrait)//Globals.tailleCase
+		c = (abscisse-Globals.epaisseurTrait)//Globals.tailleCase
 		#la première case est la 0, 0
 		#transformation en 1, 1
 		return [c + 1, l + 1]
 
 	def pointToEvent(point):
 		(c, l) = point
-		x = ((c - 1) * Settings.tailleCase) + Settings.epaisseurTrait
-		y = ((l - 1) * Settings.tailleCase) + Settings.epaisseurTrait
+		x = ((c - 1) * Globals.tailleCase) + Globals.epaisseurTrait
+		y = ((l - 1) * Globals.tailleCase) + Globals.epaisseurTrait
 		return AutomaticEvent(x, y)
 
 	def pointToCase(point):
 		(c, l) = point
-		return Settings.columnToChar(c) + str(l)
+		return Globals.columnToChar(c) + str(l)
 
 	def caseToPoint(case):
 		match = re.match(r"([a-z]+)([0-9]+)", case, re.I)
 
 		(columnChar, line) = match.groups()
-		return [Settings.charToColumn(columnChar), int(line)]
+		return [Globals.charToColumn(columnChar), int(line)]
 
 
 	def array_merge( first_array , second_array ):
@@ -67,9 +67,9 @@ class Settings:
 		return False
 
 	def getColumnList():
-		if(None == Settings.columnList):
-			Settings.columnList = Settings.sizeToColumnList(Settings.tailleGrille)
-		return Settings.columnList
+		if(None == Globals.columnList):
+			Globals.columnList = Globals.sizeToColumnList(Globals.tailleGrille)
+		return Globals.columnList
 
 	def sizeToColumnList(size):
 		alphabet = list('ABCDEFGHIJKLMNOPQRSTUVWXYZ')
@@ -88,11 +88,11 @@ class Settings:
 
 
 	def columnToChar(column) :
-		alphabet = Settings.getColumnList()
+		alphabet = Globals.getColumnList()
 		return alphabet[column-1]
 
 	def charToColumn(char) :
-		alphabet = Settings.getColumnList()
+		alphabet = Globals.getColumnList()
 		return alphabet.index(char) + 1
 
 	def getAroundPoints(point):
@@ -105,8 +105,8 @@ class Settings:
 			[c, l-1]
 		] :
 			(colonne, ligne) = pt
-			if(colonne <= Settings.tailleGrille
-				and ligne <= Settings.tailleGrille):
+			if(colonne <= Globals.tailleGrille
+				and ligne <= Globals.tailleGrille):
 				listPoints.append(pt)
 		return listPoints
 

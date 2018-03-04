@@ -35,16 +35,16 @@ class Joueur:
 		return joueurs[self.JOUEUR_PC] if (self.TYPE == self.JOUEUR_HUMAIN) else joueurs[self.JOUEUR_HUMAIN]
 
 	def attaque(self, pointAttaque):
-		result, bateau = self.grille.toucheCoule(pointAttaque)
+		return  self.grille.toucheCoule(pointAttaque)
 
+	def updateStats(self, result, pointAttaque):
 		self.stats['lastAttaque'] = pointAttaque
 		self.stats['lastResult'] = result
 		if(result == 'touche'):
 			self.stats['lastTouche'] = pointAttaque
+		#c'est bon on a coulé le bateau, on repasse en recherche à taton
 		elif(result == 'coule'):
 			self.stats['lastTouche'] = None
-
-		return result, bateau
 
 	def recommencer(self):
 		self.grille.viderGrille()
@@ -75,7 +75,7 @@ class JoueurPc(Joueur):
 			bateauPlace = False
 			#on cherche un emplacement libre
 			while(False == bateauPlace) :
-				cMax = lMax = Settings.tailleGrille
+				cMax = lMax = Globals.tailleGrille
 				bateau.sens = sens[randint(0,1)]
 				if(bateau.sens == 'horizontal'):
 					cMax -= bateau.taille
@@ -88,22 +88,24 @@ class JoueurPc(Joueur):
 			self.grille.placerBateau(bateau, pointAncrage)
 		return
 
-	def attaqueAleatoire(self):
-		pointAttaque = [randint(1, Settings.tailleGrille), randint(1, Settings.tailleGrille)]
-		#si on a touché un bateau, on tourne autour pour le trouver
-		if(Settings.hardLevel == True and self.stats['lastTouche']!= None) :
-			findPoint = False
-			for point in Settings.getAroundPoints( self.stats['lastTouche']):
-				#on a un point et un sens pour le bateau
-				if('touche' == self.grille.emplacementsAttaque[Settings.pointToCase(point)]):
-					pointAttaque = self.findNextPoint([ self.stats['lastTouche'], point])
-					findPoint = (False != pointAttaque)
-				if(False == findPoint and False == (Settings.pointToCase(point) in self.grille.emplacementsAttaque.keys())):
-					pointAttaque = point
-					findPoint = True
-		return Settings.pointToEvent(pointAttaque)
+	def getPointAttaqueAleatoire(self):
+		pointAttaque = [randint(1, Globals.tailleGrille), randint(1, Globals.tailleGrille)]
 
-	def findNextPoint(points):
+		#si on a touché un bateau, on tourne autour pour le trouver
+		if(Globals.hardLevel == True and self.stats['lastTouche']!= None) :
+			for point in Globals.getAroundPoints( self.stats['lastTouche']):
+				print(point)
+				if(False == (Globals.pointToCase(point) in self.grille.emplacementsAttaque.keys())):
+					pointAttaque = point
+				else :
+					#on a un point et un sens pour le bateau
+					if('touche' == self.grille.emplacementsAttaque[Globals.pointToCase(point)]):
+						pointAttaque = self.findNextPoint([ self.stats['lastTouche'], point])
+						if (False != pointAttaque) :
+							break
+		return Globals.pointToEvent(pointAttaque)
+
+	def findNextPoint(semf, points):
 		(c1, l1) = points[0]
 		(c2, l2) = points[1]
 		sens = None
@@ -119,12 +121,12 @@ class JoueurPc(Joueur):
 		if(sens == 'horizontal'):
 			l = l1
 			c = c2 + 1 if (c2 > c1) else c1 + 1
-			if(c > Settings.tailleGrille or Settings.pointToCase([c, l]) in self.grille.emplacementsAttaque.keys()):
+			if(c > Globals.tailleGrille or Globals.pointToCase([c, l]) in self.grille.emplacementsAttaque.keys()):
 				c = c2 -1 if (c2 < c1) else c1 -1
 		else :
 			c = c1
 			l = l2 + 1 if (l2 > l1) else l1 + 1
-			if(l > Settings.tailleGrille or Settings.pointToCase([c, l]) in self.grille.emplacementsAttaque.keys()):
+			if(l > Globals.tailleGrille or Globals.pointToCase([c, l]) in self.grille.emplacementsAttaque.keys()):
 				l = l2 -1 if (l2 < l1) else l1 -1
 		return [c, l]
 

@@ -1,4 +1,4 @@
-from jdev4u.settings import *
+from jdev4u.globals import *
 #
 # Classe de gestion des bateau
 #
@@ -22,21 +22,21 @@ class Bateau:
 
 	def calculDimensions(self, sens):
 		(c, l) = self.pointAncrage
-		largeur = Settings.tailleCase*(c - 1)+Settings.tailleRond
-		hauteur = Settings.tailleCase*(l - 1)+Settings.tailleRond
+		largeur = Globals.tailleCase*(c - 1)+Globals.tailleRond
+		hauteur = Globals.tailleCase*(l - 1)+Globals.tailleRond
 
 		if(sens == 'horizontal'):
 			#taille - 1 car on a déjà mis en place une taille de 1 carreau juste au dessus
-			return [largeur + ((self.taille - 1)*Settings.tailleCase), hauteur]
+			return [largeur + ((self.taille - 1)*Globals.tailleCase), hauteur]
 		else :
 			#taille - 1 car on a déjà mis en place une taille de 1 carreau juste au dessus
-			return [largeur,hauteur + ((self.taille - 1)*Settings.tailleCase)]
+			return [largeur,hauteur + ((self.taille - 1)*Globals.tailleCase)]
 
 	def listeCasesBateau(self, pointAncrage):
 		(c, l) = pointAncrage
 		ancrage = []
 		for i in range(self.taille):
-			ancrage.append(Settings.pointToCase([c, l]))
+			ancrage.append(Globals.pointToCase([c, l]))
 
 			if('horizontal' == self.sens):
 				c = c + 1
@@ -58,11 +58,11 @@ class Bateau:
 		(colonne, ligne) = self.pointAncrage
 		(largeur, hauteur) = self.calculDimensions(self.sens)
 		self.elementGraphique = grille.create_oval(
-			Settings.tailleCase*(colonne-1)+Settings.tailleCase + (2*Settings.epaisseurTrait) - Settings.tailleRond,
-			Settings.tailleCase*(ligne-1)+Settings.tailleCase + (2*Settings.epaisseurTrait)- Settings.tailleRond,
+			Globals.tailleCase*(colonne-1)+Globals.tailleCase + (2*Globals.epaisseurTrait) - Globals.tailleRond,
+			Globals.tailleCase*(ligne-1)+Globals.tailleCase + (2*Globals.epaisseurTrait)- Globals.tailleRond,
 			largeur,
 			hauteur,
-			width = Settings.epaisseurMarques,
+			width = Globals.epaisseurMarques,
 			outline = 'chocolate',
 			fill='chocolate',
 			tags = self.nom
@@ -74,8 +74,8 @@ class Bateau:
 		(largeur, hauteur) = self.calculDimensions(self.sens)
 
 		grille.coords(self.elementGraphique,
-			Settings.tailleCase*(colonne-1)+Settings.tailleCase + (2*Settings.epaisseurTrait) - Settings.tailleRond,
-			Settings.tailleCase*(ligne-1)+Settings.tailleCase + (2*Settings.epaisseurTrait)- Settings.tailleRond,
+			Globals.tailleCase*(colonne-1)+Globals.tailleCase + (2*Globals.epaisseurTrait) - Globals.tailleRond,
+			Globals.tailleCase*(ligne-1)+Globals.tailleCase + (2*Globals.epaisseurTrait)- Globals.tailleRond,
 			largeur,
 			hauteur,
 		)

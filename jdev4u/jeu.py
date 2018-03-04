@@ -56,7 +56,7 @@ class Jeu:
 
 	def _readConfigFile(self, fichierPath = 'include/bateaux.txt'):
 		result = {}
-		file = open(os.path.join(Settings.__location__, fichierPath), 'r')
+		file = open(os.path.join(Globals.__location__, fichierPath), 'r')
 		for ligne in file:
 			name, size = ligne.split(';')
 			result[name] = Bateau(name, size)
@@ -73,7 +73,7 @@ class Jeu:
 
 	#Positionne le bateau sur la grille si possible
 	def placerBateau(self, event, joueurType):
-		pointAncrage = Settings.eventToPoint(event)
+		pointAncrage = Globals.eventToPoint(event)
 		#On place le bateau dans la grille, et on l'affiche ou le déplace sur la grille graphique
 		self.joueurs[joueurType].grille.placerBateau(self.currentBateau, pointAncrage)
 
@@ -86,14 +86,16 @@ class Jeu:
 		if(self.joueurs[self.currentJoueur].isAutomatic):
 			loop = True
 			while(loop):
-				loop = (False == self.attaquer(self.joueurs[self.currentJoueur].attaqueAleatoire()))
+				loop = (False == self.attaquer(self.joueurs[self.currentJoueur].getPointAttaqueAleatoire()))
 
 	#Return touche | coule | aleau
 	def attaquer(self, event):
-		pointAttaque = Settings.eventToPoint(event)
+		pointAttaque = Globals.eventToPoint(event)
 		result, bateau = self.joueurs[self.currentJoueur].getAdversaire(self.joueurs).attaque(pointAttaque)
 		if(False == result) :
 			return False
+		#on informe le joueur du résultat de son attaque
+		self.joueurs[self.currentJoueur].updateStats(result, pointAttaque)
 		#cas spécial à l'eau
 		if(result == 'aleau'):
 			self.joueurs[self.currentJoueur].getAdversaire(self.joueurs).grille.placerAleau(pointAttaque)
@@ -121,7 +123,7 @@ class Jeu:
 				'aleau' : 'à l\'eau',
 				'win' : 'gagné!!'
 			}
-			self.nbToursStatus.set('Attaque ' + str(self.nbTours) + ' ' + Settings.pointToCase(pointAttaque) + ' ' + resultStatus[result])
+			self.nbToursStatus.set('Attaque ' + str(self.nbTours) + ' ' + Globals.pointToCase(pointAttaque) + ' ' + resultStatus[result])
 		#certaines regles permettent à un attaquant de rejouer en cas de succès
 		#pour mettre en place cette règle, il suffit de déplacer joueurSuivant dans le case 'aleau'
 		#et de faire en sorte que attaquer retourne False

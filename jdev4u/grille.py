@@ -1,4 +1,4 @@
-from jdev4u.settings import *
+from jdev4u.globals import *
 from tkinter import *
 
 #
@@ -42,9 +42,9 @@ class Grille:
 	def retournerBateau(self, event, bateau):
 		currentSens = bateau.sens
 		newSens = 'horizontal' if('vertical' == currentSens) else 'vertical'
-		pointAncrage = Settings.caseToPoint(bateau.ancrage[0])
+		pointAncrage = Globals.caseToPoint(bateau.ancrage[0])
 		#Si l'on veut modifier aussi le point d'ancrage lors d'une rotation
-		#pointAncrage = Settings.eventToPoint(event)
+		#pointAncrage = Globals.eventToPoint(event)
 		bateau.sens = newSens
 		if(False == self.placerBateau(bateau, pointAncrage)):
 			bateau.sens = currentSens
@@ -55,8 +55,8 @@ class Grille:
 		(c, l) = pointAncrage
 		return (
 			c > 0 and l > 0 and
-			(('horizontal' == bateau.sens and c - 1 + bateau.taille <= Settings.tailleGrille)
-			or ('vertical' == bateau.sens and l - 1 + bateau.taille <= Settings.tailleGrille))
+			(('horizontal' == bateau.sens and c - 1 + bateau.taille <= Globals.tailleGrille)
+			or ('vertical' == bateau.sens and l - 1 + bateau.taille <= Globals.tailleGrille))
 		)
 	def seCroise(self, bateau, pointAncrage):
 		for case in bateau.listeCasesBateau(pointAncrage):
@@ -72,7 +72,7 @@ class Grille:
 		del self.bateaux[bateau.nom]
 
 	def toucheCoule(self, pointAttaque):
-		case = Settings.pointToCase(pointAttaque)
+		case = Globals.pointToCase(pointAttaque)
 		#si on a deja attaqué, on ne réattaque pas
 		if(case in self.emplacementsAttaque.keys()):
 			return False, None
@@ -97,22 +97,22 @@ class Grille:
 
 
 	def createGrille(self):
-		largeur = Settings.tailleCase * Settings.tailleGrille + Settings.epaisseurTrait
-		grille = Canvas(Settings.window, bg=Settings.couleurFondGrille, width=largeur, height=largeur)
-		for i in range(Settings.tailleGrille +1):
+		largeur = Globals.tailleCase * Globals.tailleGrille + Globals.epaisseurTrait
+		grille = Canvas(Globals.window, bg=Globals.couleurFondGrille, width=largeur, height=largeur)
+		for i in range(Globals.tailleGrille +1):
 			grille.create_line(
 				0,
-				Settings.tailleCase*i+(Settings.epaisseurTrait / 2),
+				Globals.tailleCase*i+(Globals.epaisseurTrait / 2),
 				largeur,
-				Settings.tailleCase*i+(Settings.epaisseurTrait / 2),
-				width=Settings.epaisseurTrait)
+				Globals.tailleCase*i+(Globals.epaisseurTrait / 2),
+				width=Globals.epaisseurTrait)
 
 			grille.create_line(
-				Settings.tailleCase*i+(Settings.epaisseurTrait / 2),
+				Globals.tailleCase*i+(Globals.epaisseurTrait / 2),
 				0,
-				Settings.tailleCase*i+(Settings.epaisseurTrait / 2),
+				Globals.tailleCase*i+(Globals.epaisseurTrait / 2),
 				largeur,
-				width=Settings.epaisseurTrait)
+				width=Globals.epaisseurTrait)
 		return grille
 
 	def bindClic(self, action, params = []):
@@ -133,17 +133,17 @@ class Grille:
 		c -= 1
 		l -= 1
 		self.figuresAttaque.append(grille.create_line(
-			((Settings.tailleCase)*c) + Settings.epaisseurTrait,
-			((Settings.tailleCase)*l)+ Settings.epaisseurTrait,
-			((Settings.tailleCase)*(c+1)) + Settings.epaisseurTrait,
-			((Settings.tailleCase)*(l+1))+ Settings.epaisseurTrait,
-			width = Settings.epaisseurMarques, fill = 'white'))
+			((Globals.tailleCase)*c) + Globals.epaisseurTrait,
+			((Globals.tailleCase)*l)+ Globals.epaisseurTrait,
+			((Globals.tailleCase)*(c+1)) + Globals.epaisseurTrait,
+			((Globals.tailleCase)*(l+1))+ Globals.epaisseurTrait,
+			width = Globals.epaisseurMarques, fill = 'white'))
 		self.figuresAttaque.append(grille.create_line(
-			((Settings.tailleCase)*(c+1)) + Settings.epaisseurTrait,
-			((Settings.tailleCase)*l)+ Settings.epaisseurTrait,
-			((Settings.tailleCase)*c) + Settings.epaisseurTrait,
-			((Settings.tailleCase)*(l+1))+ Settings.epaisseurTrait,
-			width = Settings.epaisseurMarques, fill = 'white'))
+			((Globals.tailleCase)*(c+1)) + Globals.epaisseurTrait,
+			((Globals.tailleCase)*l)+ Globals.epaisseurTrait,
+			((Globals.tailleCase)*c) + Globals.epaisseurTrait,
+			((Globals.tailleCase)*(l+1))+ Globals.epaisseurTrait,
+			width = Globals.epaisseurMarques, fill = 'white'))
 
 	def placerTouche(self, pointAttaque):
 		grille = self.grilleGraphique
@@ -152,32 +152,32 @@ class Grille:
 		c -= 1
 		l -= 1
 		self.figuresAttaque.append(grille.create_oval(
-			Settings.tailleCase*(c+1) + (2*Settings.epaisseurTrait) - Settings.tailleRond,
-			Settings.tailleCase*(l+1) + (2*Settings.epaisseurTrait) - Settings.tailleRond,
-			Settings.tailleCase*c+Settings.tailleRond,
-			Settings.tailleCase*l+Settings.tailleRond,
-			width = Settings.epaisseurMarques, outline = 'red'))
+			Globals.tailleCase*(c+1) + (2*Globals.epaisseurTrait) - Globals.tailleRond,
+			Globals.tailleCase*(l+1) + (2*Globals.epaisseurTrait) - Globals.tailleRond,
+			Globals.tailleCase*c+Globals.tailleRond,
+			Globals.tailleCase*l+Globals.tailleRond,
+			width = Globals.epaisseurMarques, outline = 'red'))
 
 	def placerCoule(self, bateau):
 		grille = self.grilleGraphique
 		ancrage = bateau.listeCasesBateau(bateau.pointAncrage)
-		(c1, l1) = Settings.caseToPoint(ancrage[0])
-		(c2, l2) = Settings.caseToPoint(ancrage[-1])
+		(c1, l1) = Globals.caseToPoint(ancrage[0])
+		(c2, l2) = Globals.caseToPoint(ancrage[-1])
 		if(bateau.sens == 'horizontal'):
 			self.figuresAttaque.append(grille.create_line(
-				(Settings.tailleCase*(c1 - 1)) + (Settings.epaisseurTrait),
-				(Settings.tailleCase*(l1 - 0.5))+ (Settings.epaisseurTrait),
-				(Settings.tailleCase*(c2)) + (Settings.epaisseurTrait),
-				(Settings.tailleCase*(l2 - 0.5))+ (Settings.epaisseurTrait),
-			width = Settings.epaisseurMarques, fill = 'red'
+				(Globals.tailleCase*(c1 - 1)) + (Globals.epaisseurTrait),
+				(Globals.tailleCase*(l1 - 0.5))+ (Globals.epaisseurTrait),
+				(Globals.tailleCase*(c2)) + (Globals.epaisseurTrait),
+				(Globals.tailleCase*(l2 - 0.5))+ (Globals.epaisseurTrait),
+			width = Globals.epaisseurMarques, fill = 'red'
 			))
 		else :
 			self.figuresAttaque.append(grille.create_line(
-				(Settings.tailleCase*(c1 - 0.5)) + (Settings.epaisseurTrait),
-				(Settings.tailleCase*(l1 - 1))+ (Settings.epaisseurTrait),
-				(Settings.tailleCase*(c2 - 0.5)) + (Settings.epaisseurTrait),
-				(Settings.tailleCase*(l2))+ (Settings.epaisseurTrait),
-			width = Settings.epaisseurMarques, fill = 'red'
+				(Globals.tailleCase*(c1 - 0.5)) + (Globals.epaisseurTrait),
+				(Globals.tailleCase*(l1 - 1))+ (Globals.epaisseurTrait),
+				(Globals.tailleCase*(c2 - 0.5)) + (Globals.epaisseurTrait),
+				(Globals.tailleCase*(l2))+ (Globals.epaisseurTrait),
+			width = Globals.epaisseurMarques, fill = 'red'
 			))
 
 	def viderGrille(self):
