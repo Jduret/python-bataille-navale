@@ -35,7 +35,7 @@ class Joueur:
 		return joueurs[self.JOUEUR_PC] if (self.TYPE == self.JOUEUR_HUMAIN) else joueurs[self.JOUEUR_HUMAIN]
 
 	def attaque(self, pointAttaque):
-		return  self.grille.toucheCoule(pointAttaque)
+		return ( (False, None) if not Globals.isInGrille(pointAttaque) else  self.grille.toucheCoule(pointAttaque))
 
 	def updateStats(self, result, pointAttaque):
 		self.stats['lastAttaque'] = pointAttaque

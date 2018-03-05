@@ -142,10 +142,13 @@ class Jeu:
 	#Return touche | coule | aleau
 	def attaquer(self, event):
 		pointAttaque = Globals.eventToPoint(event)
-		result, bateau = self.joueurs[self.currentJoueur].getAdversaire(self.joueurs).attaque(pointAttaque)
+		(result, bateau) = self.joueurs[self.currentJoueur].getAdversaire(self.joueurs).attaque(pointAttaque)
 		#cas en erreur inconnue, on tente de relancer le joueurSuivant
+		print(result)
 		if(False == result) :
-			self.joueurSuivant()
+			if (self.currentJoueur == Joueur.JOUEUR_PC ) :
+				self.joueurSuivant()
+			return False
 		#on informe le joueur du résultat de son attaque
 		self.joueurs[self.currentJoueur].updateStats(result, pointAttaque)
 		#cas spécial à l'eau

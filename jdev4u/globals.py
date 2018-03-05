@@ -109,8 +109,12 @@ class Globals:
 			[c, l-1]
 		] :
 			(colonne, ligne) = pt
-			if(colonne <= Globals.tailleGrille
-				and ligne <= Globals.tailleGrille):
+			if(Globals.isInGrille(pt)):
 				listPoints.append(pt)
 		return listPoints
+
+	def isInGrille(point):
+		(colonne, ligne) = point
+		return (colonne > 0 and colonne <= Globals.tailleGrille
+			and ligne > 0 and ligne <= Globals.tailleGrille)
 
