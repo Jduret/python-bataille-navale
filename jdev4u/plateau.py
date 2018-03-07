@@ -17,7 +17,6 @@ from jdev4u.joueur import *
 class Plateau:
 	#instance de Jeu
 	jeu = None
-	bateauText = None
 
 	#Dans ce tableau on va placer tous les éléments graphique nécessaire à l'interface
 	elements = {}
@@ -26,8 +25,6 @@ class Plateau:
 		#cas d'une dépendance croisée. A limiter au strict nécessaire
 		batailleNavale.plateau = self
 		self.jeu = batailleNavale
-		self.bateauText = StringVar()
-		self.bateauText.set('')
 
 		self.elements['messageStatus'] = Label(Globals.window, anchor= W, textvariable=self.jeu.score)
 		#le columnspan ici permet de faire en sorte que le texte se place sur toute la largeur de la fenêtre
@@ -59,8 +56,6 @@ class Plateau:
 
 		self.elements['BateauTitle'] = Label(Globals.window, text='Placement bateau :')
 		self.elements['BateauTitle'].place(relx=0.5, rely=0.1, anchor= CENTER, relwidth=0.4)
-		self.elements['CurrentBateau'] = Label(Globals.window, textvariable=self.bateauText)
-		self.elements['CurrentBateau'].place(in_=self.elements['BateauTitle'], relx=0.5, rely=1.2,  bordermode='outside', anchor= CENTER)
 
 		self.createBateauxButtons()
 
@@ -106,7 +101,8 @@ class Plateau:
 		self.elements['boutonBateau'] = {}
 
 		for bateau in self.jeu.getBateaux():
-			self.elements['boutonBateau'][bateau] = Button(Globals.window, text=bateau, command=lambda  currentBateau = bateau:
+			#Attention, l'option background n'est pas compatible MAC
+			self.elements['boutonBateau'][bateau] = Button(Globals.window, text=bateau, background = self.jeu.getBateau(bateau).backgroundColor, highlightbackground = self.jeu.getBateau(bateau).backgroundColor, command=lambda  currentBateau = bateau:
 				self.placerBateau(bateauName = currentBateau, joueurType = Joueur.JOUEUR_HUMAIN)
 			)
 
@@ -122,7 +118,7 @@ class Plateau:
 		self.elements['boutonBateau']['validerPlacement'].place(in_=self.elements['boutonBateau'][lastShip], relx=0.5, anchor = CENTER, rely = 2.5, relwidth=1, bordermode='outside')
 
 	def placerBateau(self, bateauName, joueurType) :
-		self.bateauText.set(bateauName)
+		self.jeu.nbToursStatus.set(bateauName + ' (' + str(self.jeu.getBateau(bateauName).taille) + ')')
 		self.jeu.selectionBateau(bateauName, joueurType)
 
 	def validerPlacement(self, joueurType):
@@ -133,18 +129,22 @@ class Plateau:
 		if('boutonBateau' in self.elements.keys()):
 			for bouton in self.elements['boutonBateau'].values():
 				bouton.configure(state = DISABLED);
+		self.elements['boutonChangeNom'].configure(state = DISABLED)
 
 		self.jeu.joueurs[joueurType].grille.unbindClic()
 		for bateau in self.jeu.joueurs[joueurType].grille.bateaux.values():
 			bateau.unbindMove(self.jeu.joueurs[joueurType].grille)
 		self.jeu.joueurs[joueurType].getAdversaire(self.jeu.joueurs).grille.bindClic(self.jeu.attaquer)
+		self.jeu.nbToursStatus.set(self.jeu.joueurs[self.jeu.currentJoueur].name.get() + ' à toi de jouer...')
+
 
 	def recommencer(self):
 		self.elements['messageHumain'].configure(text=Globals.defaultHumainName)
 		self.jeu.recommencer()
 		if('boutonBateau' in self.elements.keys()):
 			for bouton in self.elements['boutonBateau'].values():
-				bouton.configure(state = NORMAL);
+				bouton.configure(state = NORMAL)
+		self.elements['boutonChangeNom'].configure(state = NORMAL)
 
 	def unbindAll(self):
 		for joueur in self.jeu.joueurs.values():

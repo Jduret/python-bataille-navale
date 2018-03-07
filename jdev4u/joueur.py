@@ -40,11 +40,6 @@ class Joueur:
 	def updateStats(self, result, pointAttaque):
 		self.stats['lastAttaque'] = pointAttaque
 		self.stats['lastResult'] = result
-		if(result == 'touche'):
-			self.stats['lastTouche'] = pointAttaque
-		#c'est bon on a coulé le bateau, on repasse en recherche à taton
-		elif(result == 'coule'):
-			self.stats['lastTouche'] = None
 
 	def recommencer(self):
 		self.grille.viderGrille()
@@ -89,27 +84,44 @@ class JoueurPc(Joueur):
 		return
 
 	def getPointAttaqueAleatoire(self, adversaire):
-		pointAttaque = [randint(1, Globals.tailleGrille), randint(1, Globals.tailleGrille)]
+		#première possibilité une attaque à l'aveugle
+		#point fort : facile à metter en place*
+		#point faible : possibilité de retomber sur un point déjà attaqué à prendre en compte
+		#
+		#pointAttaque = Globals.getRandomPoint(adversaire.grille.emplacementsAttaque)
 
+		#deuxième possibilité une attaque par liste de point restant
+		#point fort : impossible de retomber sur un point déjà attaqué
+		#pont faible : obligation de lister tous les points possibles au début du jeu
+		#
+		pointAttaque = Globals.caseToPoint(adversaire.grille.casesRestantes[randint(0, (len(adversaire.grille.casesRestantes) - 1))])
+		print(pointAttaque)
 		#creation d'une liste de point possible pour l'attaque
 		# le dernier point sera toujours celui issue de la plus grande intelligence
 		pointAttaquePossible = [pointAttaque]
 
 		#si on a touché un bateau, on tourne autour pour le trouver
-		if(Globals.hardLevel > 0 and self.stats['lastTouche']!= None) :
-			for point in Globals.getAroundPoints( self.stats['lastTouche']):
-				if(False == (Globals.pointToCase(point) in adversaire.grille.emplacementsAttaque.keys())):
-					pointAttaquePossible.append(point)
-				if(Globals.hardLevel > 1) :
-					#on a un point et un sens pour le bateau
-					if('touche' == self.grille.emplacementsAttaque[Globals.pointToCase(point)]):
-						pointAttaqueTrouve = self.findNextPoint([ self.stats['lastTouche'], point])
-						pointAttaquePossible.append(pointAttaqueTrouve)
-						if (False != pointAttaqueTrouve) :
-							break
+		if(Globals.hardLevel == True and 'touche' in adversaire.grille.emplacementsAttaque.values()) :
+
+			#récupération des points touché
+			cases = adversaire.grille.getCasesAttaqueParStatus('touche')
+
+			for case in cases:
+				for point in Globals.getAroundPoints(Globals.caseToPoint(case)):
+					if(not (Globals.pointToCase(point) in adversaire.grille.emplacementsAttaque.keys())):
+						pointAttaquePossible.append(point)
+				#Si on a pas trouvé au moins une case à attaquer,
+				if(1 == len(pointAttaquePossible)):
+					self.grille.updateEmplacementsAttaque('touche*', case)
+				#on a trouvé une case à attaquer
+				else :
+					break;
 		return Globals.pointToEvent(pointAttaquePossible[-1])
 
-	def findNextPoint(semf, points):
+	def findNextPoint(self, points):
+		"""
+		@deprecated IA peut se contenter de l'intelligence d'attaquer l'un des points autour du point "touché"
+		"""
 		(c1, l1) = points[0]
 		(c2, l2) = points[1]
 		sens = None
@@ -132,7 +144,7 @@ class JoueurPc(Joueur):
 			l = l2 + 1 if (l2 > l1) else l1 + 1
 			if(l > Globals.tailleGrille or Globals.pointToCase([c, l]) in self.grille.emplacementsAttaque.keys()):
 				l = l2 -1 if (l2 < l1) else l1 -1
-		return [c, l]
+		return [c, l] if (not Globals.pointToCase([c, l]) in self.grille.emplacementsAttaque.keys()) else False
 
 
 

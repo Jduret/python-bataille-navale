@@ -5,6 +5,8 @@ from jdev4u.globals import *
 class Bateau:
 	nom = None
 	taille = None
+	backgroundColor = None
+
 	isGraphic = True
 
 	jeu = None
@@ -13,9 +15,11 @@ class Bateau:
 	ancrage = []
 	sens = None
 
-	def __init__(self, nom, taille):
+	def __init__(self, nom, taille, backgroundColor):
 		self.nom = nom
 		self.taille = int(taille)
+		self.backgroundColor = backgroundColor
+
 		self.pointAncrage = None
 		self.sens = 'horizontal'
 		self.elementGraphique = None
@@ -63,8 +67,8 @@ class Bateau:
 			largeur,
 			hauteur,
 			width = Globals.epaisseurMarques,
-			outline = 'chocolate',
-			fill='chocolate',
+			outline = self.backgroundColor,
+			fill=self.backgroundColor,
 			tags = self.nom
 		)
 

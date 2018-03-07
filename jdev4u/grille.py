@@ -9,6 +9,7 @@ class Grille:
 	bateaux = {}
 	emplacements = {}
 	emplacementsAttaque = {}
+	casesRestantes = []
 
 	grilleGraphique = None
 	isGraphic = True
@@ -17,6 +18,7 @@ class Grille:
 	def __init__(self, joueurType):
 		self.emplacements = {}
 		self.bateaux = {}
+		self.casesRestantes = Globals.listAllCases()
 
 	def hasBateau(self, case):
 		return case in self.emplacements
@@ -84,10 +86,11 @@ class Grille:
 			bateau.attaque(case)
 			if(bateau.estCoule()):
 				result = 'coule'
+				self.updateEmplacementsAttaque(bateau.ancrage, result)
 				self.removeBateau(bateau)
 				if(len(self.bateaux) == 0):
 					result = 'win'
-		self.emplacementsAttaque[case] = result
+		self.updateEmplacementsAttaque([case],result)
 		return result, bateau
 
 	def addGrille(self, placement):
@@ -95,6 +98,19 @@ class Grille:
 		self.grilleGraphique.grid(row = placement['row'], column = placement['column'], columnspan = 1, padx = 5, pady = 5)
 		return
 
+	def getCasesAttaqueParStatus(self, searchStatus):
+		cases = []
+		for case, status in self.emplacementsAttaque.items():
+		    if status == searchStatus:
+		    	cases.append(case)
+		return cases
+
+
+	def updateEmplacementsAttaque(self, cases, result) :
+		for case in cases :
+			self.emplacementsAttaque[case] = result
+			if(case in self.casesRestantes):
+				del self.casesRestantes[self.casesRestantes.index(case)]
 
 	def createGrille(self):
 		largeur = Globals.tailleCase * Globals.tailleGrille + Globals.epaisseurTrait
@@ -190,3 +206,4 @@ class Grille:
 		self.bateaux = {}
 		self.emplacementsAttaque = {}
 		self.emplacements = {}
+		self.casesRestantes = Globals.listAllCases()

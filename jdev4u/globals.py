@@ -1,5 +1,6 @@
 import os
 import re
+import random
 from jdev4u.automaticEvent import *
 
 #Un petit  objet d'utilitaire
@@ -29,11 +30,7 @@ class Globals:
 	enableWindowUpdate = False
 
 	columnList = None
-	#0 = pas d'intelligence
-	#1 = on attaque une cible autour du dernier point touché
-	#2 = on tente de ce concentrer sur la cible lorsque l'on touche
-	#ce dernier point n'est pas encore fonctionnel car cela nécessite de connaitre le nom du bateau coulé
-	hardLevel = 1
+	hardLevel = True
 
 	def	eventToPoint(event):
 		abscisse = event.x
@@ -90,6 +87,13 @@ class Globals:
 			charlist.append(''.join(prefix) + alphabet[(x % len(alphabet))])
 		return charlist
 
+	def listAllCases():
+		cases = []
+		colonnes = Globals.sizeToColumnList(Globals.tailleGrille)
+		for colonne in colonnes:
+			for ligne in range(1, Globals.tailleGrille):
+				cases.append(colonne+str(ligne))
+		return cases
 
 	def columnToChar(column) :
 		alphabet = Globals.getColumnList()
@@ -111,6 +115,7 @@ class Globals:
 			(colonne, ligne) = pt
 			if(Globals.isInGrille(pt)):
 				listPoints.append(pt)
+		random.shuffle(listPoints)
 		return listPoints
 
 	def isInGrille(point):
@@ -118,3 +123,13 @@ class Globals:
 		return (colonne > 0 and colonne <= Globals.tailleGrille
 			and ligne > 0 and ligne <= Globals.tailleGrille)
 
+	def getRandomPoint(emplacementsAttaque):
+		continueResearch = True
+		i = 0
+		pointAttaque = None
+		while(continueResearch):
+			i += 1
+			pointAttaque = [random.randint(1, Globals.tailleGrille), random.randint(1, Globals.tailleGrille)]
+			continueResearch = (Globals.pointToCase(pointAttaque) in emplacementsAttaque.keys())
+		print('Point aléatoire trouvé en ' + str(i) + ' boucle')
+		return pointAttaque

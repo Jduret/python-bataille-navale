@@ -1,5 +1,5 @@
-porte-avions;5
-croiseur;4
-contre-torpilleur;3
-sous-marin;3
-torpilleur;2
+porte-avions;5;navajo white
+croiseur;4;dark sea green
+contre-torpilleur;3;chocolate
+sous-marin;3;tomato
+torpilleur;2;LavenderBlush3

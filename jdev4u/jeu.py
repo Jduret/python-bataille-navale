@@ -111,8 +111,8 @@ class Jeu:
 		result = {}
 		file = open(self.buildPath(fichierPath), 'r')
 		for ligne in file:
-			name, size = ligne.split(';')
-			result[name] = Bateau(name, size)
+			name, size, color = ligne.rstrip("\r\n").split(';')
+			result[name] = Bateau(name, size, color)
 		return result
 
 	#cette méthode permet à l'utilisateur de placer ses bateaux
@@ -143,8 +143,9 @@ class Jeu:
 	def attaquer(self, event):
 		pointAttaque = Globals.eventToPoint(event)
 		(result, bateau) = self.joueurs[self.currentJoueur].getAdversaire(self.joueurs).attaque(pointAttaque)
-		#cas en erreur inconnue, on tente de relancer le joueurSuivant
-		print(result)
+		#result est FAUX dans 2 situations
+		#la case attaqué est hors grille
+		#la case attaqué à déjà été attaqué
 		if(False == result) :
 			if (self.currentJoueur == Joueur.JOUEUR_PC ) :
 				self.joueurSuivant()
@@ -166,7 +167,8 @@ class Jeu:
 		#cas spécial du coulé
 		if(result == 'coule'):
 			self.joueurs[self.currentJoueur].getAdversaire(self.joueurs).grille.placerCoule(bateau)
-			self.nbToursStatus.set('Bateau ' + bateau.nom + ' ' + result + '.')
+			self.nbToursStatus.set('Bravo, bateau ' + bateau.nom + 'coulé.')
+
 		if(self.currentJoueur == Joueur.JOUEUR_HUMAIN):
 			self.nbTours += 1
 			resultStatus = {
